@@ -622,6 +622,8 @@ Overall, while some macro-financial indicators are statistically related to next
 
 # Summary
 
+## Results So Far
+
 The results so far suggest that the collected indicators contain some statistically detectable information, but their ability to explain daily stock returns is very limited. The descriptive analysis shows that the sample includes clear episodes of market stress, especially during the 2008 financial crisis and the 2020 COVID-19 market collapse. These crisis periods are visible in both the stock index plots and the volatility series, and the VIX exceeds 40 only during a relatively small number of months concentrated around major shocks. This indicates that extreme volatility is not a common market state, but when it occurs, it is associated with severe disruptions in financial conditions.
 
 The return distribution also shows that daily stock returns are centered close to zero and have heavy tails. This means that most days involve small changes, but large positive and negative returns occur more frequently than would be expected under a normal distribution. This feature already suggests that predicting daily returns will be difficult, because the series is noisy and driven partly by rare but important shocks.
