@@ -13,6 +13,9 @@ execute:
   message: false
 jupyter: python3
 ---
+
+[GitHub Repository](https://github.com/lijack032/JSC370-Project)
+
 # Introduction
 
 Financial markets are influenced by a wide range of macroeconomic and financial indicators that reflect the overall state of the economy and investor expectations. Researchers and investors often examine whether these indicators contain information that can help explain or predict movements in stock market returns. Variables such as interest rates, market volatility, commodity prices, credit conditions, and consumer sentiment may signal changes in economic activity or financial risk that could influence equity markets.
@@ -43,23 +46,23 @@ The datasets from Yahoo Finance and FRED were then merged by date into a single 
 Exploratory data analysis was conducted. Summary statistics and several visualizations were produced to examine the distribution of stock returns and the relationships between macro-financial indicators and equity returns. A simple OLS regression model was also estimated to explore the statistical relationships between lagged macro-financial indicators and daily stock market returns.
 
 ```{python}
-import pandas as pd
-import numpy as np
-import requests
-import re
-import json
-import math
-import time
-from plotnine import *
 import datetime as dt
+import json
+import os
+import time
+
+import numpy as np
+import pandas as pd
+import requests
+
 import matplotlib.pyplot as plt
 import seaborn as sns
+from plotnine import *
+
 import statsmodels.api as sm
-from scipy.stats import pearsonr
-from scipy.stats import ttest_ind
+from scipy.stats import pearsonr, ttest_ind
 
 from dotenv import load_dotenv
-import os
 
 ```
 
