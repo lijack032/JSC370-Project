@@ -97,9 +97,10 @@ The model interpretation results also show that different prediction tasks rely 
 
 Overall, the findings support a mixed conclusion: macro-financial indicators provide little evidence of meaningful predictability for exact return size, but they show limited usefulness for classifying medium-term market direction.
 
-## Project Materials
+## Other Project Resources
 
 - [Read the full final report](report.html)
-- [View interactive visualizations](interactive-viz.html)
 - [Download the PDF report](report.pdf)
-- [View the GitHub repository](https://github.com/lijack032/JSC370-Project)
+- [View interactive visualizations](interactive-viz.html)
+- [FRED data sources](https://fred.stlouisfed.org/docs/api/fred/)
+- [Yahoo Finance data sources](https://finance.yahoo.com/lookup)
