@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Jack Li">
 
 <title>JSC370 Final Report – Predicting S&amp;P 500 Returns</title>
 <style>
@@ -182,7 +183,6 @@ window.Quarto = {
   </ul></li>
   <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a>
   <ul class="collapse">
-  <li><a href="#dataset-and-split-summary" id="toc-dataset-and-split-summary" class="nav-link" data-scroll-target="#dataset-and-split-summary">Dataset and Split Summary</a></li>
   <li><a href="#model-performance-tables" id="toc-model-performance-tables" class="nav-link" data-scroll-target="#model-performance-tables">Model Performance Tables</a></li>
   <li><a href="#hyperparameter-tuning-results" id="toc-hyperparameter-tuning-results" class="nav-link" data-scroll-target="#hyperparameter-tuning-results">Hyperparameter Tuning Results</a></li>
   <li><a href="#statistical-comparison-across-horizons" id="toc-statistical-comparison-across-horizons" class="nav-link" data-scroll-target="#statistical-comparison-across-horizons">Statistical Comparison Across Horizons</a></li>
@@ -216,6 +216,12 @@ window.Quarto = {
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jack Li </p>
+          </div>
+  </div>
     
   
     
@@ -284,7 +290,7 @@ window.Quarto = {
 </ul>
 <p>These analyses were used to assess distributional shape, outliers, temporal trends, and potential predictor relationships.</p>
 <p>Here is a sample of the data distribution of finalized daily S&amp;P 500 returns:</p>
-<div id="8ac7d47d" class="cell" data-execution_count="11">
+<div id="ab154dd5" class="cell" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -374,7 +380,7 @@ window.Quarto = {
 <ul>
 <li>Root Mean Squared Error (<strong>RMSE</strong>)</li>
 <li>Mean Absolute Error (<strong>MAE</strong>)</li>
-<li>Out-of-sample (R^2)</li>
+<li>Out-of-sample <span class="math inline">\(R^2\)</span></li>
 </ul>
 <p>For classification models, predictive performance is evaluated using:</p>
 <ul>
@@ -397,7 +403,7 @@ window.Quarto = {
 <li><strong>Test set:</strong> held out until the end for final out-of-sample evaluation</li>
 </ul>
 <p>This setup more closely reflects the real forecasting problem faced by investors, where only historical information is available when making predictions.</p>
-<div id="de655660" class="cell" data-execution_count="15">
+<div id="d3422731" class="cell" data-execution_count="15">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -453,74 +459,9 @@ window.Quarto = {
 <section id="results" class="level1">
 <h1>Results</h1>
 <p>This section presents the final out-of-sample results for both prediction tasks: forecasting the numerical value of future S&amp;P 500 returns and classifying whether future returns are positive or negative. The models are evaluated across 1-day, 5-day, and 20-day horizons. Regression performance is assessed using RMSE, MAE, and out-of-sample R², while classification performance is assessed using accuracy and ROC-AUC.</p>
-<section id="dataset-and-split-summary" class="level2">
-<h2 class="anchored" data-anchor-id="dataset-and-split-summary">Dataset and Split Summary</h2>
-<div id="95b1988a" class="cell" data-execution_count="23">
-<div class="cell-output cell-output-display">
-<div>
-
-
-<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">Item</th>
-<th data-quarto-table-cell-role="th">Value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">0</th>
-<td>Full sample start date</td>
-<td>2000-09-21</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">1</th>
-<td>Full sample end date</td>
-<td>2025-09-30</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">2</th>
-<td>Number of observations after cleaning</td>
-<td>6273</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">3</th>
-<td>Number of predictor features</td>
-<td>99</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">4</th>
-<td>Training observations</td>
-<td>4391</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">5</th>
-<td>Validation observations</td>
-<td>941</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">6</th>
-<td>Test observations</td>
-<td>941</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">7</th>
-<td>Forecast horizons</td>
-<td>1-day, 5-day, 20-day</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<p><strong>Table 1. Dataset and Sample Split Summary</strong></p>
-<p>Table 1 summarizes the final modeling dataset after merging market and macroeconomic indicators, creating lagged and rolling features, and removing missing observations. The sample is split chronologically into training, validation, and test periods, which avoids look-ahead bias and better reflects the real forecasting setting. The number of predictor features also shows that the final project goes beyond the original variables by adding engineered measures of lagged conditions, momentum, volatility, and yield spreads.</p>
-</section>
 <section id="model-performance-tables" class="level2">
 <h2 class="anchored" data-anchor-id="model-performance-tables">Model Performance Tables</h2>
-<div id="ea0810ee" class="cell" data-execution_count="24">
+<div id="24787b3b" class="cell" data-execution_count="23">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -689,7 +630,7 @@ window.Quarto = {
 </div>
 <p><strong>Table 2. Regression Performance Summary</strong></p>
 <p>Table 2 shows that the regression models had weak out-of-sample performance across all three forecast horizons. At the 1-day horizon, Random Forest performed best, with an RMSE of 0.01140 and a small positive <span class="math inline">\(R^2\)</span> of 0.00384. This means it slightly improved over the mean benchmark, whose <span class="math inline">\(R^2\)</span> was -0.00045, but the improvement was extremely small. XGBoost and Lasso were very close to the mean benchmark, with <span class="math inline">\(R^2\)</span> values of -0.00013 and -0.00017, respectively. At the 5-day horizon, XGBoost performed best with an <span class="math inline">\(R^2\)</span> of -0.00083, followed closely by Lasso at -0.00091. These values are still slightly negative, showing almost no meaningful predictive gain over the benchmark. At the 20-day horizon, the mean benchmark performed best, with an <span class="math inline">\(R^2\)</span> of -0.01352, while all fitted models performed worse. XGBoost performed especially poorly at this horizon, with an <span class="math inline">\(R^2\)</span> of -1.43134. Overall, the results suggest that the engineered macro-financial indicators provide very limited ability to predict the exact size of future S&amp;P 500 returns. The only positive <span class="math inline">\(R^2\)</span> appears for the 1-day Random Forest model, but the value is so close to zero that it should be interpreted as a very weak improvement rather than strong predictive power. In relation to the research question, this table suggests that machine learning models provide little improvement for predicting exact return size, even when many macro-financial predictors are included.</p>
-<div id="baab7fb6" class="cell" data-execution_count="25">
+<div id="ccfd1252" class="cell" data-execution_count="24">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -798,9 +739,9 @@ window.Quarto = {
 <p><strong>Table 3. Classification Performance Summary</strong></p>
 <p>Table 3 shows that the classification models had modest performance overall, with the strongest results coming from Logistic Regression. At the 1-day horizon, Logistic Regression performed best, with an accuracy of 0.54304 and a ROC-AUC of 0.53035. This is slightly better than random classification, but the improvement is small. XGBoost also had a reasonable 1-day accuracy of 0.53241, but its ROC-AUC was only 0.50967, suggesting weak ranking ability between positive and non-positive return days.</p>
 <p>At the 5-day horizon, classification performance was weaker. Logistic Regression had the highest ROC-AUC among the fitted models, but its value was 0.49491, which is slightly below the random benchmark of 0.50. XGBoost and Random Forest also performed below 0.50, with ROC-AUC values of 0.46970 and 0.42498. The majority-class benchmark had the highest accuracy at 0.58342, but this does not necessarily mean it was a better predictive model. It mainly reflects the fact that one class was more common in the 5-day test set.</p>
-<p>At the 20-day horizon, Logistic Regression again performed best by ROC-AUC, reaching 0.57166. This is the strongest classification result in the table and suggests some ability to distinguish positive from non-positive 20-day returns. However, its accuracy was only 0.39320, while the majority-class benchmark had an accuracy of 0.64081. This shows why ROC-AUC is more useful than accuracy here: accuracy is strongly affected by class imbalance, while ROC-AUC evaluates the model’s ranking ability across different thresholds. Overall, the classification results suggest that directional prediction is still weak, but the 20-day Logistic Regression model shows the clearest predictive signal.</p>
-<p>In relation to the research question, these results suggest that direction classification is somewhat more promising than return-size prediction, but the improvement over random classification is still modest.</p>
-<div id="e9e6857d" class="cell" data-execution_count="26">
+<p>At the 20-day horizon, Logistic Regression again performed best by ROC-AUC, reaching 0.57166. This is the strongest classification result in the table and suggests some ability to distinguish positive from non-positive 20-day returns. However, its accuracy was only 0.39320, while the majority-class benchmark had an accuracy of 0.64081. This shows why ROC-AUC is more useful than accuracy here: accuracy is strongly affected by class imbalance, while ROC-AUC evaluates the model’s ranking ability across different thresholds. The classification results suggest that directional prediction is still weak, but the 20-day Logistic Regression model shows the clearest predictive signal.</p>
+<p>Moreover, these results suggest that direction classification is somewhat more promising than return-size prediction, but the improvement over random classification is still modest.</p>
+<div id="5518cb04" class="cell" data-execution_count="25">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -848,7 +789,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 4. Best Regression Model by Forecast Horizon</strong></p>
-<div id="7c143119" class="cell" data-execution_count="27">
+<div id="e8f79d09" class="cell" data-execution_count="26">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -897,8 +838,8 @@ window.Quarto = {
 </section>
 <section id="hyperparameter-tuning-results" class="level2">
 <h2 class="anchored" data-anchor-id="hyperparameter-tuning-results">Hyperparameter Tuning Results</h2>
-<div id="ca1cd4ac" class="cell" data-execution_count="30">
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div id="cac3dcbb" class="cell" data-execution_count="29">
+<div class="cell-output cell-output-display" data-execution_count="24">
 <div>
 
 
@@ -937,8 +878,8 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 6. Ridge Regression Hyperparameters</strong></p>
-<div id="19c0a707" class="cell" data-execution_count="31">
-<div class="cell-output cell-output-display" data-execution_count="26">
+<div id="431c1bc7" class="cell" data-execution_count="30">
+<div class="cell-output cell-output-display" data-execution_count="25">
 <div>
 
 
@@ -1023,8 +964,8 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 7. Random Forest Hyperparameters</strong></p>
-<div id="8cfa4953" class="cell" data-execution_count="32">
-<div class="cell-output cell-output-display" data-execution_count="27">
+<div id="72811f76" class="cell" data-execution_count="31">
+<div class="cell-output cell-output-display" data-execution_count="26">
 <div>
 
 
@@ -1137,11 +1078,11 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 8. XGBoost Hyperparameters</strong></p>
-<p>Tables 6 through 8 report the tuned hyperparameters selected through Optuna for the regularized and tree-based models. For Ridge regression, the selected alpha values are large across all horizons, ranging from 89.64764 to 99.87613. This suggests that the model preferred stronger regularization, likely because the engineered predictor set contains many related variables and could otherwise overfit the training data. For Random Forest, the selected settings vary across regression and classification tasks. For example, the number of trees ranges from 106 to 348, and maximum depth ranges from 2 to 20, showing that different horizons required different levels of model complexity. For XGBoost, the tuned number of estimators ranges from 190 to 705, with learning rates between 0.00882 and 0.04640. These differences show that the models were not trained using one fixed setting, but were separately optimized for each task and forecast horizon using the validation set. Overall, these tables support the reproducibility of the modeling process and show how hyperparameter tuning was used to control model complexity.</p>
+<p>Tables 6 through 8 report the tuned hyperparameters selected through Optuna for the regularized and tree-based models. For Ridge regression, the selected alpha values are large across all horizons, ranging from 89.64764 to 99.87613. This suggests that the model preferred stronger regularization, likely because the engineered predictor set contains many related variables and could otherwise overfit the training data. For Random Forest, the selected settings vary across regression and classification tasks. For example, the number of trees ranges from 106 to 348, and maximum depth ranges from 2 to 20, showing that different horizons required different levels of model complexity. For XGBoost, the tuned number of estimators ranges from 190 to 705, with learning rates between 0.00882 and 0.04640. These differences show that the models were not trained using one fixed setting, but were separately optimized for each task and forecast horizon using the validation set.</p>
 </section>
 <section id="statistical-comparison-across-horizons" class="level2">
 <h2 class="anchored" data-anchor-id="statistical-comparison-across-horizons">Statistical Comparison Across Horizons</h2>
-<div id="5c5c470e" class="cell" data-execution_count="33">
+<div id="c9348e03" class="cell" data-execution_count="32">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -1173,7 +1114,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 9. Friedman Test for Regression Performance Across Horizons</strong></p>
-<div id="7d0e9728" class="cell" data-execution_count="34">
+<div id="9dee8d83" class="cell" data-execution_count="33">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -1206,17 +1147,17 @@ window.Quarto = {
 </div>
 <p><strong>Table 10. Friedman Test for Classification Performance Across Horizons</strong></p>
 <p>Tables 9 and 10 test whether model performance differs systematically across the 1-day, 5-day, and 20-day forecast horizons. For regression performance, the Friedman test is statistically significant, with a test statistic of 12.00 and a p-value of 0.00248. This means there is evidence that regression performance changes across forecast horizons. This matches the earlier model results, where performance was relatively less weak at the 1-day horizon but became worse at longer horizons, especially for several fitted models at the 20-day horizon.</p>
-<p>For classification performance, the Friedman test is also statistically significant, with a test statistic of 6.00 and a p-value of 0.04979. This suggests that ROC-AUC performance also differs across horizons at the 5% level, although the result is very close to the cutoff. The classification tables show that the 20-day horizon has the strongest ROC-AUC result, especially for Logistic Regression, while the 5-day horizon performs weakest. Overall, these tests support the idea that forecast horizon matters for both regression and classification, but the classification result should be interpreted cautiously because the p-value is only slightly below 0.05.</p>
+<p>For classification performance, the Friedman test is also statistically significant, with a test statistic of 6.00 and a p-value of 0.04979. This suggests that ROC-AUC performance also differs across horizons at the 5% level, although the result is very close to the cutoff. The classification tables show that the 20-day horizon has the strongest ROC-AUC result, especially for Logistic Regression, while the 5-day horizon performs weakest. These tests therefore support the idea that forecast horizon matters for both regression and classification, but the classification result should be interpreted cautiously because the p-value is only slightly below 0.05.</p>
 </section>
 <section id="regression-performance" class="level2">
 <h2 class="anchored" data-anchor-id="regression-performance">Regression Performance</h2>
 <section id="best-out-of-sample-r²-by-horizon" class="level3">
 <h3 class="anchored" data-anchor-id="best-out-of-sample-r²-by-horizon">Best Out-of-Sample R² by Horizon</h3>
-<div id="6a8a21a7" class="cell" data-execution_count="35">
+<div id="04e3d025" class="cell" data-execution_count="34">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-36-output-1.png" width="653" height="470" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-35-output-1.png" width="653" height="470" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1226,11 +1167,11 @@ window.Quarto = {
 </section>
 <section id="best-roc-auc-by-horizon" class="level3">
 <h3 class="anchored" data-anchor-id="best-roc-auc-by-horizon">Best ROC-AUC by Horizon</h3>
-<div id="e930dfd9" class="cell" data-execution_count="36">
+<div id="2f7ad400" class="cell" data-execution_count="35">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-37-output-1.png" width="655" height="470" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-36-output-1.png" width="655" height="470" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1240,11 +1181,11 @@ window.Quarto = {
 </section>
 <section id="regression-model-comparison-heatmap" class="level3">
 <h3 class="anchored" data-anchor-id="regression-model-comparison-heatmap">Regression Model Comparison Heatmap</h3>
-<div id="56e6ae51" class="cell" data-execution_count="37">
+<div id="210f58e0" class="cell" data-execution_count="36">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-38-output-1.png" width="729" height="470" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-37-output-1.png" width="729" height="470" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1254,11 +1195,11 @@ window.Quarto = {
 </section>
 <section id="classification-model-comparison-heatmap" class="level3">
 <h3 class="anchored" data-anchor-id="classification-model-comparison-heatmap">Classification Model Comparison Heatmap</h3>
-<div id="1d46d4ff" class="cell" data-execution_count="38">
+<div id="0127399d" class="cell" data-execution_count="37">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-39-output-1.png" width="712" height="470" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-38-output-1.png" width="712" height="470" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1271,21 +1212,21 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="prediction-diagnostics">Prediction Diagnostics</h2>
 <section id="actual-vs-predicted-returns" class="level3">
 <h3 class="anchored" data-anchor-id="actual-vs-predicted-returns">Actual vs Predicted Returns</h3>
-<div id="8acdce3b" class="cell" data-execution_count="40">
+<div id="fed90adb" class="cell" data-execution_count="39">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-41-output-1.png" width="661" height="567" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-40-output-1.png" width="661" height="567" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p><strong>Figure 5. Actual vs Predicted Returns for the Best Overall Regression Model</strong></p>
-<div id="1ae75259" class="cell" data-execution_count="41">
+<div id="d5199fd9" class="cell" data-execution_count="40">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-42-output-1.png" width="659" height="567" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-41-output-1.png" width="659" height="567" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1296,37 +1237,37 @@ window.Quarto = {
 </section>
 <section id="roc-curve-for-best-classifier" class="level3">
 <h3 class="anchored" data-anchor-id="roc-curve-for-best-classifier">ROC Curve for Best Classifier</h3>
-<div id="61bdb874" class="cell" data-execution_count="42">
+<div id="395821f0" class="cell" data-execution_count="41">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-43-output-1.png" width="566" height="567" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-42-output-1.png" width="566" height="567" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p><strong>Figure 7. ROC Curve (Logistic Regression, 20-Day Direction)</strong></p>
-<p>Figure 7 shows the ROC curve for the best overall classification model, Logistic Regression at the 20-day forecast horizon. The model has an AUC of approximately 0.572, which is above the random-classifier benchmark of 0.50. This means the model has some ability to rank positive 20-day return cases above non-positive return cases. However, the curve remains fairly close to the diagonal line, so the improvement is modest rather than strong. Overall, this figure supports the classification results in Table 3: the clearest directional signal appears at the 20-day horizon, but the model’s predictive power is still limited.</p>
+<p>Figure 7 shows the ROC curve for the best overall classification model, Logistic Regression at the 20-day forecast horizon. The model has an AUC of approximately 0.572, which is above the random-classifier benchmark of 0.50. This means the model has some ability to rank positive 20-day return cases above non-positive return cases. However, the curve remains fairly close to the diagonal line, so the improvement is modest rather than strong. This figure supports the classification results in Table 3: the clearest directional signal appears at the 20-day horizon, but the model’s predictive power is still limited.</p>
 </section>
 </section>
 <section id="feature-importance-and-model-interpretation" class="level2">
 <h2 class="anchored" data-anchor-id="feature-importance-and-model-interpretation">Feature Importance and Model Interpretation</h2>
-<div id="8fcdc454" class="cell" data-execution_count="44">
+<div id="d3063179" class="cell" data-execution_count="43">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-45-output-1.png" width="756" height="566" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-44-output-1.png" width="756" height="566" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p><strong>Figure 8. Random Forest Regressor Feature Importance for 1-Day Return Prediction</strong></p>
 <p>Figure 8 shows the most important predictors used by the Random Forest model for 1-day S&amp;P 500 return prediction. The top predictors are mainly volatility and momentum variables. The most important feature is the 1-day change in the VIX, followed by the 5-day change in the VIX, 20-day Dow Jones momentum, the VIX level itself, and shorter-term S&amp;P 500 and Dow Jones momentum measures. This suggests that the Random Forest model relied more on recent market sentiment, volatility changes, and price momentum than on slower-moving macroeconomic indicators. For example, variables such as unemployment, inflation, and industrial production do not appear among the top features, while VIX-related and momentum variables dominate the ranking. However, these importance values should be interpreted as model-based associations rather than causal effects. They show which variables the model used most for prediction, not which variables directly caused future returns.</p>
-<div id="b4efba2e" class="cell" data-execution_count="46">
+<div id="357e28f8" class="cell" data-execution_count="45">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/cell-47-output-1.png" width="756" height="566" class="figure-img"></p>
+<p><img src="report_files/figure-html/cell-46-output-1.png" width="756" height="566" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1346,7 +1287,7 @@ window.Quarto = {
 <p>The feature-importance results help explain this pattern. The 1-day Random Forest regression model relied mostly on recent volatility and momentum variables, especially VIX changes, S&amp;P 500 momentum, Dow Jones momentum, and rolling volatility. In contrast, the 20-day Logistic Regression model placed more weight on broader macro-financial indicators, including Treasury yields, oil prices, unemployment, inflation, the federal funds rate, industrial production, the USD Index, and credit spreads. This suggests that short-term return size is mostly noisy and linked to recent market movement, while medium-term direction may be more connected to wider economic conditions.</p>
 <p>The results also show that more complex machine learning models do not automatically solve the difficulty of stock return prediction. Random Forest performed best for 1-day regression, but only by a very small margin. XGBoost performed best for 5-day regression, but its <span class="math inline">\(R^2\)</span> remained negative. For classification, Logistic Regression consistently outperformed Random Forest and XGBoost by ROC-AUC. This suggests that the main limitation is not only model choice, but also the weak and noisy relationship between publicly available macro-financial indicators and future stock returns.</p>
 <p>There are several limitations to this project. First, some macroeconomic variables are released monthly and were forward-filled to daily frequency, which may not fully reflect the timing of real information releases. Second, the project evaluates statistical forecasting performance only and does not test whether the predictions would be useful in a real trading strategy after transaction costs and risk constraints. Third, the analysis focuses only on the S&amp;P 500, so the findings may not generalize to individual stocks, international markets, or other asset classes. Future work could improve the analysis by using real-time macroeconomic release dates, adding news or sentiment data, comparing multiple market indices, or testing whether the classification signals can support a simple portfolio strategy.</p>
-<p>In conclusion, this project finds little evidence that macro-financial indicators can meaningfully predict the exact size of future S&amp;P 500 returns. However, the indicators show limited usefulness for classifying medium-term market direction, especially at the 20-day horizon. The results support the broader view that short-run stock returns are highly difficult to forecast, even with engineered features and machine learning models.</p>
+<p>In conclusion, this project finds <strong>little evidence</strong> that macro-financial indicators can meaningfully predict the exact size of future S&amp;P 500 returns. However, the indicators show limited usefulness for classifying medium-term market direction, especially at the 20-day horizon. The results support the broader view that short-run stock returns are highly difficult to forecast, even with engineered features and machine learning models.</p>
 
 
 </section>
@@ -1759,7 +1700,7 @@ window.Quarto = {
       &nbsp;
     </div>   
     <div class="nav-footer-center">
-<p>JSC370 Final Project | Mia Chen | 2026</p>
+<p>JSC370 Final Project | Jack Li | 2026</p>
 </div>
     <div class="nav-footer-right">
       &nbsp;

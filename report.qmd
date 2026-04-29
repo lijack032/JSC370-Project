@@ -1,5 +1,6 @@
 ---
 title: "JSC370 Final Report"
+author: "Jack Li"
 format:
   html:
     toc: true
@@ -7,7 +8,6 @@ format:
     toc-location: right
     code-overflow: scroll
   pdf:
-    author: "Jack Li"
     documentclass: article
     geometry: margin=1in
     toc: false
@@ -437,7 +437,7 @@ For regression models, forecasting performance is evaluated using:
 
 - Root Mean Squared Error (**RMSE**)
 - Mean Absolute Error (**MAE**)
-- Out-of-sample \(R^2\)
+- Out-of-sample $R^2$
 
 For classification models, predictive performance is evaluated using:
 
@@ -602,6 +602,7 @@ split_summary["Share of Sample"] = split_summary["Share of Sample"].map(lambda x
 
 display(split_summary)
 ```
+
 
 
 ```{python}
@@ -1032,36 +1033,6 @@ classification_results = pd.DataFrame(classification_results_list)
 
 This section presents the final out-of-sample results for both prediction tasks: forecasting the numerical value of future S&P 500 returns and classifying whether future returns are positive or negative. The models are evaluated across 1-day, 5-day, and 20-day horizons. Regression performance is assessed using RMSE, MAE, and out-of-sample R², while classification performance is assessed using accuracy and ROC-AUC.
 
-## Dataset and Split Summary
-```{python}
-dataset_summary = pd.DataFrame({
-    "Item": [
-        "Full sample start date",
-        "Full sample end date",
-        "Number of observations after cleaning",
-        "Number of predictor features",
-        "Training observations",
-        "Validation observations",
-        "Test observations",
-        "Forecast horizons"
-    ],
-    "Value": [
-        model_df["date"].min().strftime("%Y-%m-%d"),
-        model_df["date"].max().strftime("%Y-%m-%d"),
-        len(model_df),
-        len(feature_cols),
-        len(train),
-        len(valid),
-        len(test),
-        "1-day, 5-day, 20-day"
-    ]
-})
-
-display(dataset_summary)
-```
-**Table 1. Dataset and Sample Split Summary**
-
-Table 1 summarizes the final modeling dataset after merging market and macroeconomic indicators, creating lagged and rolling features, and removing missing observations. The sample is split chronologically into training, validation, and test periods, which avoids look-ahead bias and better reflects the real forecasting setting. The number of predictor features also shows that the final project goes beyond the original variables by adding engineered measures of lagged conditions, momentum, volatility, and yield spreads.
 
 ## Model Performance Tables
 
@@ -1095,9 +1066,9 @@ Table 3 shows that the classification models had modest performance overall, wit
 
 At the 5-day horizon, classification performance was weaker. Logistic Regression had the highest ROC-AUC among the fitted models, but its value was 0.49491, which is slightly below the random benchmark of 0.50. XGBoost and Random Forest also performed below 0.50, with ROC-AUC values of 0.46970 and 0.42498. The majority-class benchmark had the highest accuracy at 0.58342, but this does not necessarily mean it was a better predictive model. It mainly reflects the fact that one class was more common in the 5-day test set.
 
-At the 20-day horizon, Logistic Regression again performed best by ROC-AUC, reaching 0.57166. This is the strongest classification result in the table and suggests some ability to distinguish positive from non-positive 20-day returns. However, its accuracy was only 0.39320, while the majority-class benchmark had an accuracy of 0.64081. This shows why ROC-AUC is more useful than accuracy here: accuracy is strongly affected by class imbalance, while ROC-AUC evaluates the model’s ranking ability across different thresholds. Overall, the classification results suggest that directional prediction is still weak, but the 20-day Logistic Regression model shows the clearest predictive signal.
+At the 20-day horizon, Logistic Regression again performed best by ROC-AUC, reaching 0.57166. This is the strongest classification result in the table and suggests some ability to distinguish positive from non-positive 20-day returns. However, its accuracy was only 0.39320, while the majority-class benchmark had an accuracy of 0.64081. This shows why ROC-AUC is more useful than accuracy here: accuracy is strongly affected by class imbalance, while ROC-AUC evaluates the model’s ranking ability across different thresholds. The classification results suggest that directional prediction is still weak, but the 20-day Logistic Regression model shows the clearest predictive signal.
 
-In relation to the research question, these results suggest that direction classification is somewhat more promising than return-size prediction, but the improvement over random classification is still modest.
+Moreover, these results suggest that direction classification is somewhat more promising than return-size prediction, but the improvement over random classification is still modest.
 
 ```{python}
 best_reg_table = (
@@ -1214,7 +1185,7 @@ pd.concat([xgb_reg_param_table, xgb_class_param_table], ignore_index=True)
 ```
 **Table 8. XGBoost Hyperparameters**
 
-Tables 6 through 8 report the tuned hyperparameters selected through Optuna for the regularized and tree-based models. For Ridge regression, the selected alpha values are large across all horizons, ranging from 89.64764 to 99.87613. This suggests that the model preferred stronger regularization, likely because the engineered predictor set contains many related variables and could otherwise overfit the training data. For Random Forest, the selected settings vary across regression and classification tasks. For example, the number of trees ranges from 106 to 348, and maximum depth ranges from 2 to 20, showing that different horizons required different levels of model complexity. For XGBoost, the tuned number of estimators ranges from 190 to 705, with learning rates between 0.00882 and 0.04640. These differences show that the models were not trained using one fixed setting, but were separately optimized for each task and forecast horizon using the validation set. Overall, these tables support the reproducibility of the modeling process and show how hyperparameter tuning was used to control model complexity.
+Tables 6 through 8 report the tuned hyperparameters selected through Optuna for the regularized and tree-based models. For Ridge regression, the selected alpha values are large across all horizons, ranging from 89.64764 to 99.87613. This suggests that the model preferred stronger regularization, likely because the engineered predictor set contains many related variables and could otherwise overfit the training data. For Random Forest, the selected settings vary across regression and classification tasks. For example, the number of trees ranges from 106 to 348, and maximum depth ranges from 2 to 20, showing that different horizons required different levels of model complexity. For XGBoost, the tuned number of estimators ranges from 190 to 705, with learning rates between 0.00882 and 0.04640. These differences show that the models were not trained using one fixed setting, but were separately optimized for each task and forecast horizon using the validation set. 
 
 ## Statistical Comparison Across Horizons
 
@@ -1274,7 +1245,7 @@ display(fried_classification)
 
 Tables 9 and 10 test whether model performance differs systematically across the 1-day, 5-day, and 20-day forecast horizons. For regression performance, the Friedman test is statistically significant, with a test statistic of 12.00 and a p-value of 0.00248. This means there is evidence that regression performance changes across forecast horizons. This matches the earlier model results, where performance was relatively less weak at the 1-day horizon but became worse at longer horizons, especially for several fitted models at the 20-day horizon.
 
-For classification performance, the Friedman test is also statistically significant, with a test statistic of 6.00 and a p-value of 0.04979. This suggests that ROC-AUC performance also differs across horizons at the 5% level, although the result is very close to the cutoff. The classification tables show that the 20-day horizon has the strongest ROC-AUC result, especially for Logistic Regression, while the 5-day horizon performs weakest. Overall, these tests support the idea that forecast horizon matters for both regression and classification, but the classification result should be interpreted cautiously because the p-value is only slightly below 0.05.
+For classification performance, the Friedman test is also statistically significant, with a test statistic of 6.00 and a p-value of 0.04979. This suggests that ROC-AUC performance also differs across horizons at the 5% level, although the result is very close to the cutoff. The classification tables show that the 20-day horizon has the strongest ROC-AUC result, especially for Logistic Regression, while the 5-day horizon performs weakest. These tests therefore support the idea that forecast horizon matters for both regression and classification, but the classification result should be interpreted cautiously because the p-value is only slightly below 0.05.
 
 ## Regression Performance
 
@@ -1532,7 +1503,7 @@ plt.show()
 ```
 **Figure 7. ROC Curve (Logistic Regression, 20-Day Direction)**
 
-Figure 7 shows the ROC curve for the best overall classification model, Logistic Regression at the 20-day forecast horizon. The model has an AUC of approximately 0.572, which is above the random-classifier benchmark of 0.50. This means the model has some ability to rank positive 20-day return cases above non-positive return cases. However, the curve remains fairly close to the diagonal line, so the improvement is modest rather than strong. Overall, this figure supports the classification results in Table 3: the clearest directional signal appears at the 20-day horizon, but the model’s predictive power is still limited.
+Figure 7 shows the ROC curve for the best overall classification model, Logistic Regression at the 20-day forecast horizon. The model has an AUC of approximately 0.572, which is above the random-classifier benchmark of 0.50. This means the model has some ability to rank positive 20-day return cases above non-positive return cases. However, the curve remains fairly close to the diagonal line, so the improvement is modest rather than strong. This figure supports the classification results in Table 3: the clearest directional signal appears at the 20-day horizon, but the model’s predictive power is still limited.
 
 ## Feature Importance and Model Interpretation
 
@@ -1660,4 +1631,4 @@ The results also show that more complex machine learning models do not automatic
 
 There are several limitations to this project. First, some macroeconomic variables are released monthly and were forward-filled to daily frequency, which may not fully reflect the timing of real information releases. Second, the project evaluates statistical forecasting performance only and does not test whether the predictions would be useful in a real trading strategy after transaction costs and risk constraints. Third, the analysis focuses only on the S&P 500, so the findings may not generalize to individual stocks, international markets, or other asset classes. Future work could improve the analysis by using real-time macroeconomic release dates, adding news or sentiment data, comparing multiple market indices, or testing whether the classification signals can support a simple portfolio strategy.
 
-In conclusion, this project finds little evidence that macro-financial indicators can meaningfully predict the exact size of future S&P 500 returns. However, the indicators show limited usefulness for classifying medium-term market direction, especially at the 20-day horizon. The results support the broader view that short-run stock returns are highly difficult to forecast, even with engineered features and machine learning models.
+In conclusion, this project finds **little evidence** that macro-financial indicators can meaningfully predict the exact size of future S&P 500 returns. However, the indicators show limited usefulness for classifying medium-term market direction, especially at the 20-day horizon. The results support the broader view that short-run stock returns are highly difficult to forecast, even with engineered features and machine learning models.
