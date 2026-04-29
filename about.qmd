@@ -1,9 +1,22 @@
 ---
-title: "About This Website"
-author: "Your Name"
+title: "About"
 ---
 
+# About the Author
 
+My name is **Jack Li**, and I am an undergraduate student at the **University of Toronto** pursuing an Honours Bachelor of Science. I am specializing in **Data Science**, with a focus on quantitative finance, and **Mathematical Applications in Economics and Finance**.
 
-Hello! I'm [Your Name], a [Your Role, e.g., Data Scientist, Student, Developer] with a passion for [your interests, e.g., data visualization, open-source, teaching].
+My academic interests include **data analysis**, **machine learning**, **statistical modeling**, **financial economics**, and **mathematical finance**. I have worked with tools such as **Python**, **R**, **SQL**, **Pandas**, **NumPy**, **Scikit-learn**, **SciPy**, **Matplotlib**, **Tableau**, and **Git**.
+
+# Project Context
+
+This website was created for the **JSC370 Final Project**. The project examines whether macro-financial indicators can meaningfully predict future **S&P 500 returns** using regression and classification models.
+
+# Links
+
+- [Home](index.html)
+- [Final Report](report.html)
+- [Interactive Visualizations](interactive-viz.html)
+- [Download the PDF Report](report.pdf)
+- [GitHub Repository](https://github.com/lijack032/JSC370-Project)
 
