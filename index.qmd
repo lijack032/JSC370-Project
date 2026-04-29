@@ -1,0 +1,97 @@
+---
+project:
+  type: website
+  output-dir: "."
+  render:
+    - index.qmd
+    - about.qmd
+    - report.qmd
+    - interactive-viz.qmd
+
+website:
+  title: "Predicting S&P 500 Returns with Macro-Financial Indicators"
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "Final Report"
+        href: report.qmd
+      - text: "Interactive Visualizations"
+        href: interactive-viz.qmd
+      - text: "About"
+        href: about.qmd
+    right:
+      - icon: github
+        href: https://github.com/lijack032/JSC370-Project
+        target: _blank
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    toc-location: right
+    code-overflow: scroll
+    css: styles.css
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: true
+
+jupyter: python3
+---
+
+# Project Overview
+
+This project examines whether publicly available macro-financial indicators can meaningfully predict future S&P 500 returns. The analysis combines daily financial market data from Yahoo Finance with macroeconomic indicators from Federal Reserve Economic Data. The main research question is:
+
+**Can macro-financial indicators meaningfully predict future S&P 500 returns, and do machine learning methods improve predictive accuracy relative to simpler benchmark and linear models?**
+
+The project compares regression models for predicting the numerical size of future returns and classification models for predicting whether future returns are positive or non-positive. Models are evaluated across 1-day, 5-day, and 20-day forecast horizons.
+
+## Data Sources
+
+The dataset combines daily market indicators and macroeconomic indicators, including:
+
+- S&P 500 Index
+- Dow Jones Industrial Average
+- 10-year and 1-year Treasury yields
+- U.S. Dollar Index
+- CBOE Volatility Index
+- Crude oil prices
+- Federal Funds Rate
+- Consumer Price Index
+- Unemployment rate
+- Industrial production
+- Consumer sentiment
+- Credit spread
+
+## Methods
+
+The project uses a chronological training, validation, and test split to avoid look-ahead bias. The models include:
+
+- Mean benchmark
+- Majority-class benchmark
+- Ordinary Least Squares
+- Ridge Regression
+- Lasso Regression
+- Logistic Regression
+- Random Forest
+- XGBoost
+
+Hyperparameters were tuned using Optuna. Regression models were evaluated using RMSE, MAE, and out-of-sample $R^2$. Classification models were evaluated using accuracy and ROC-AUC.
+
+## Main Findings
+
+The results suggest that exact return prediction is very difficult. Most regression models produced out-of-sample $R^2$ values close to zero or negative. The only positive regression result was the 1-day Random Forest model, but the improvement was very small.
+
+Classification performance was somewhat more promising but still limited. Logistic Regression performed best across all three horizons, with the strongest result at the 20-day horizon. This suggests that macro-financial indicators may contain limited information for predicting medium-term market direction, but not enough for strong forecasting performance.
+
+## Project Materials
+
+- [Read the full final report](report.html)
+- [View interactive visualizations](interactive-viz.html)
+- [Download the PDF report](Report.pdf)
+- [View the GitHub repository](https://github.com/lijack032/JSC370-Project)

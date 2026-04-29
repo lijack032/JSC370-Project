@@ -1,0 +1,236 @@
+---
+title: "Interactive Visualizations"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: true
+jupyter: python3
+---
+
+This page presents three interactive visualizations created from the final project dataset. These figures explore how volatility, return distributions, and market regimes relate to future S&P 500 returns. Each plot includes hover information, and users can zoom or pan within the plot area.
+
+```{python}
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import joblib
+import os
+```
+
+```{python}
+market = pd.read_csv("data/market.csv")
+model_df = pd.read_csv("data/model_df.csv")
+
+market["date"] = pd.to_datetime(market["date"])
+model_df["date"] = pd.to_datetime(model_df["date"])
+
+test = pd.read_csv("data/test.csv")
+test["date"] = pd.to_datetime(test["date"])
+```
+
+## Figure 1. VIX and Future 20-Day S&P 500 Returns
+
+```{python}
+scatter_df = model_df.dropna(
+    subset=["Volatility Index", "sp500_return_t20", "date"]
+).copy()
+
+fig1 = px.scatter(
+    scatter_df,
+    x="Volatility Index",
+    y="sp500_return_t20",
+    trendline="ols",
+    hover_data={
+        "date": True,
+        "Volatility Index": ":.2f",
+        "sp500_return_t20": ":.2%"
+    },
+    title="VIX and Future 20-Day S&P 500 Returns",
+    labels={
+        "Volatility Index": "VIX",
+        "sp500_return_t20": "Future 20-Day S&P 500 Return",
+        "date": "Date"
+    },
+    template="plotly_white",
+    opacity=0.6
+)
+
+fig1.update_layout(
+    hovermode="closest",
+    yaxis_tickformat=".2%",
+    dragmode="pan"
+)
+
+fig1.show(config={"scrollZoom": True})
+```
+
+The scatterplot shows that most observations are clustered at relatively low to moderate VIX values, roughly between 10 and 30, with future 20-day returns mostly concentrated around zero. As VIX increases, the spread of future returns becomes wider, meaning that high-volatility periods are associated with more uncertain future outcomes. The fitted trendline slopes slightly upward, but the points are widely scattered around it, so the relationship is weak. This supports the project’s main finding: volatility contains some information about future market conditions, but it is not strong enough by itself to accurately predict future S&P 500 returns.
+
+## Figure 2. Distribution of Future Returns by Forecast Horizon
+
+```{python}
+hist_df = model_df[
+    ["sp500_return_t1", "sp500_return_t5", "sp500_return_t20"]
+].copy()
+
+hist_long = hist_df.melt(
+    var_name="Forecast Horizon",
+    value_name="Future Return"
+)
+
+hist_long["Forecast Horizon"] = hist_long["Forecast Horizon"].replace({
+    "sp500_return_t1": "1-Day",
+    "sp500_return_t5": "5-Day",
+    "sp500_return_t20": "20-Day"
+})
+
+# Trim extreme values for clearer visualization
+lower = hist_long["Future Return"].quantile(0.01)
+upper = hist_long["Future Return"].quantile(0.99)
+
+hist_long_trimmed = hist_long[
+    hist_long["Future Return"].between(lower, upper)
+].copy()
+
+fig2 = px.histogram(
+    hist_long_trimmed,
+    x="Future Return",
+    color="Forecast Horizon",
+    barmode="overlay",
+    nbins=80,
+    opacity=0.55,
+    title="Distribution of Future S&P 500 Returns by Forecast Horizon",
+    labels={
+        "Future Return": "Future S&P 500 Return",
+        "count": "Number of Observations"
+    },
+    template="plotly_white"
+)
+
+fig2.add_vline(
+    x=0,
+    line_dash="dash",
+    annotation_text="Zero return",
+    annotation_position="top"
+)
+
+fig2.update_layout(
+    hovermode="closest",
+    xaxis_tickformat=".2%",
+    dragmode="pan"
+)
+
+fig2.show(config={"scrollZoom": True})
+```
+This interactive overlay histogram compares future S&P 500 returns across the 1-day, 5-day, and 20-day forecast horizons. The dashed vertical line marks a zero return. The plot shows that return distributions become wider as the forecast horizon increases, which helps explain why exact return prediction becomes difficult. The future returns are centered around zero across all three forecast horizons, but the spread becomes wider as the horizon increases. The 1-day returns are tightly concentrated near zero, which means most short-term market movements are small. The 5-day distribution is wider, and the 20-day distribution is the widest, showing that longer horizons create a larger range of possible future outcomes. This helps explain why the regression models struggled to predict exact return size: even though average returns are close to zero, the realized outcomes vary substantially, especially at the 20-day horizon.
+
+## Figure 3. Future 20-Day Returns by VIX Regime
+
+```{python}
+box_df = model_df.dropna(
+    subset=["Volatility Index", "sp500_return_t20", "date"]
+).copy()
+
+box_df["VIX Regime"] = pd.qcut(
+    box_df["Volatility Index"],
+    q=4,
+    labels=[
+        "Low VIX",
+        "Moderate VIX",
+        "High VIX",
+        "Very High VIX"
+    ]
+)
+
+fig3 = px.box(
+    box_df,
+    x="VIX Regime",
+    y="sp500_return_t20",
+    color="VIX Regime",
+    points="outliers",
+    hover_data={
+        "date": True,
+        "Volatility Index": ":.2f",
+        "sp500_return_t20": ":.2%"
+    },
+    title="Future 20-Day S&P 500 Returns by VIX Regime",
+    labels={
+        "VIX Regime": "Volatility Regime",
+        "sp500_return_t20": "Future 20-Day S&P 500 Return",
+        "Volatility Index": "VIX",
+        "date": "Date"
+    },
+    template="plotly_white",
+    category_orders={
+        "VIX Regime": ["Low VIX", "Moderate VIX", "High VIX", "Very High VIX"]
+    }
+)
+
+fig3.update_layout(
+    hovermode="closest",
+    yaxis_tickformat=".2%",
+    showlegend=False,
+    dragmode="pan"
+)
+
+fig3.show(config={"scrollZoom": True})
+```
+
+This interactive boxplot compares future 20-day S&P 500 returns across four VIX regimes. The regimes are created by dividing the VIX into four groups from low to very high volatility. The plot shows how the distribution of future returns changes when market volatility is low, moderate, high, or very high. The spread of future 20-day returns becomes wider as the VIX regime increases. Low VIX periods have a relatively narrow range of future returns, while very high VIX periods show much larger positive and negative outcomes. This suggests that high-volatility periods are associated with greater uncertainty about future market movement. The median return appears slightly positive across the regimes, but the very high VIX group has many extreme observations in both directions. This supports the project’s broader finding that volatility is informative about market conditions, but it does not make future returns easy to predict because high volatility increases the range of possible outcomes.
+
+## Figure 4. VIX, Credit Spread, and Future 20-Day S&P 500 Return
+
+```{python}
+fig3d_df = model_df.dropna(
+    subset=["Volatility Index", "credit_spread", "sp500_return_t20", "sp500_up_t20", "date"]
+).copy()
+
+fig3d_df["Actual Direction"] = fig3d_df["sp500_up_t20"].map({
+    0: "Non-positive return",
+    1: "Positive return"
+})
+
+fig4 = px.scatter_3d(
+    fig3d_df,
+    x="Volatility Index",
+    y="credit_spread",
+    z="sp500_return_t20",
+    color="Actual Direction",
+    hover_data={
+        "date": True,
+        "Volatility Index": ":.2f",
+        "credit_spread": ":.2f",
+        "sp500_return_t20": ":.2%",
+        "Actual Direction": True
+    },
+    title="VIX, Credit Spread, and Future 20-Day S&P 500 Return",
+    labels={
+        "Volatility Index": "VIX",
+        "credit_spread": "Credit Spread",
+        "sp500_return_t20": "Future 20-Day S&P 500 Return"
+    },
+    template="plotly_white",
+    opacity=0.7
+)
+
+fig4.update_layout(
+    scene=dict(
+        xaxis_title="VIX",
+        yaxis_title="Credit Spread",
+        zaxis_title="Future 20-Day Return",
+        zaxis_tickformat=".2%"
+    ),
+    legend_title="Actual Direction"
+)
+fig4.update_traces(marker=dict(size=3))
+fig4.show(config={"scrollZoom": True})
+
+```
+
+This interactive 3D scatterplot shows the relationship between the VIX, credit spread, and future 20-day S&P 500 return. The x-axis shows market volatility, the y-axis shows credit-market stress, and the z-axis shows the future 20-day return. Points are colored by actual return direction, with one color representing positive future returns and the other representing non-positive future returns. We see that most observations are concentrated at lower VIX values and lower credit spreads, where future 20-day returns are clustered close to zero. When VIX and credit spreads are higher, the points become more spread out vertically, so that future returns become more uncertain. However the general trend as VIX increases is that the future returns become higher and the credit spread of the non-positive returns increases. The positive and non-positive return points also overlap heavily, which shows why classification performance is only modest. Even though volatility and credit spreads provide useful information about market conditions, they do not cleanly separate positive and negative future returns. This supports the project’s main conclusion that macro-financial indicators contain some predictive signal, especially for 20-day direction, but the signal is not strong enough to produce highly accurate forecasts.

@@ -1,0 +1,46 @@
+h1 {
+  font-size: 34px;
+  font-weight: 700;
+}
+
+h1.title {
+  font-size: 34px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 28px;
+  font-weight: 650;
+  margin-top: 1.5em;
+}
+
+h3 {
+  font-size: 23px;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 20px;
+}
+
+p {
+  line-height: 1.55;
+}
+
+img {
+  display: block;
+  margin: auto;
+}
+
+code {
+  font-size: 14px;
+}
+
+.table {
+  font-size: 14px;
+}
+
+.caption, figcaption {
+  font-size: 14px;
+  color: #555;
+}

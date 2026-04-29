@@ -1,0 +1,743 @@
+---
+title: "JSC370 Midterm Project"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 3
+    toc-location: right
+    code-overflow: scroll
+execute: 
+  echo: false
+  warning: false
+  message: false
+  eval: false
+jupyter: python3
+---
+
+[GitHub Repository](https://github.com/lijack032/JSC370-Project)
+
+# Introduction
+
+Financial markets are influenced by a wide range of macroeconomic and financial indicators that reflect the overall state of the economy and investor expectations. Researchers and investors often examine whether these indicators contain information that can help explain or predict movements in stock market returns. Variables such as interest rates, market volatility, commodity prices, credit conditions, and consumer sentiment may signal changes in economic activity or financial risk that could influence equity markets.
+
+This project investigates whether **daily macro-financial indicators can predict future stock market returns in the United States**. The analysis focuses on two major equity indices: the **S&P 500** and the **Dow Jones Industrial Average**, which are widely used benchmarks for overall U.S. stock market performance.
+
+The central research question of this project is therefore:
+
+**Do daily macro-financial indicators predict future stock market returns?**
+
+Several macro-financial variables are considered as potential predictors of market returns. These indicators capture different aspects of financial and economic conditions, including interest rates, market uncertainty, energy prices, credit risk, and consumer expectations. Understanding whether these indicators contain predictive information about stock returns can provide insight into how macroeconomic conditions are reflected in financial markets.
+
+The main hypothesis of this analysis is that indicators reflecting **market risk and macroeconomic conditions** may contain information about future stock returns. For example, higher levels of market volatility or widening credit spreads may be associated with lower equity returns, while stronger economic sentiment may be associated with higher returns. The analysis explores these relationships using historical data on stock market indices and macro-financial indicators.
+
+
+# Methods
+
+The data used in this project were obtained from two primary sources: Yahoo Finance and the Federal Reserve Economic Data (FRED) database.
+
+Daily financial market data were collected using the **Yahoo Finance API**, including the S&P 500 index, the Dow Jones Industrial Average, the 10-year U.S. Treasury yield, the U.S. Dollar Index, the CBOE Volatility Index (VIX), and crude oil prices. These variables capture key financial market conditions such as interest rates, currency strength, energy prices, and market uncertainty.
+
+Additional macroeconomic indicators were obtained from the **FRED API**, including the federal funds rate, inflation (Consumer Price Index), unemployment rate, industrial production, and the University of Michigan Consumer Sentiment Index. A **credit spread** variable was also constructed using the difference between BAA corporate bond yields and 10-year Treasury yields, representing the additional yield investors demand for higher risk. These indicators represent broader economic conditions, monetary policy, credit market risk, and consumer expectations.
+
+Because many macroeconomic indicators are reported monthly while financial market data are available daily, the macroeconomic series were resampled to daily frequency using forward filling so that all variables could be aligned with daily financial market observations.
+
+The datasets from Yahoo Finance and FRED were then merged by date into a single dataset. Daily stock returns were calculated for the S&P 500 and Dow Jones indices using percentage changes in index levels. To ensure that the analysis only uses information available at the time of prediction, all predictor variables were lagged by one trading day. This prevents target leakage and allows the analysis to examine whether macro-financial indicators observed at time \(t-1\) are associated with stock returns at time \(t\).
+
+Exploratory data analysis was conducted. Summary statistics and several visualizations were produced to examine the distribution of stock returns and the relationships between macro-financial indicators and equity returns. A simple OLS regression model was also estimated to explore the statistical relationships between lagged macro-financial indicators and daily stock market returns.
+
+```{python}
+import datetime as dt
+import json
+import os
+import time
+
+import numpy as np
+import pandas as pd
+import requests
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from plotnine import *
+
+import statsmodels.api as sm
+from scipy.stats import pearsonr, ttest_ind
+
+from dotenv import load_dotenv
+
+```
+
+
+```{python}
+# load_dotenv()
+def get_fred_series(series_id):
+    
+    url = "https://api.stlouisfed.org/fred/series/observations"
+    params = {
+        "series_id": series_id,
+        "api_key": "adc89f75fa31f7c985334862e25961c7",
+        "file_type": "json"
+    }
+    
+    r = requests.get(url, params=params)
+    data = r.json()["observations"]
+    
+    df = pd.DataFrame(data)
+    df = df[["date","value"]]
+    
+    df["date"] = pd.to_datetime(df["date"])
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    df = df.set_index("date")
+
+    return df
+```
+
+```{python}
+def yahoo_chart_history(symbol, period1, period2, interval="1d"):
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+    params = {
+        "period1": period1,
+        "period2": period2,
+        "interval": interval,
+        "includeAdjustedClose": "true"
+    }
+    headers = {"User-Agent": "JSC370 Midterm Project - Data Collection"}
+
+    r = requests.get(url, params=params, headers=headers, timeout=30)
+    r.raise_for_status()
+
+    payload = r.json()
+    result = payload["chart"]["result"][0]
+
+    ts = result["timestamp"]
+    q = result["indicators"]["quote"][0]
+    adj = result["indicators"]["adjclose"][0]["adjclose"]
+
+    out = pd.DataFrame({
+        "date": pd.to_datetime(ts, unit="s"),
+        "open": q["open"],
+        "high": q["high"],
+        "low": q["low"],
+        "close": q["close"],
+        "adj_close": adj,
+        "volume": q["volume"]
+    })
+
+    out['date'] = out['date'].dt.floor("D")
+
+    return out.dropna(subset=["date", "close"]).sort_values("date").reset_index(drop=True)
+```
+
+```{python}
+start = dt.datetime(1980,1,1)
+end = dt.datetime(2026,3,1)
+period1 = int(start.timestamp())
+period2 = int(end.timestamp())
+
+sp500 = yahoo_chart_history("^GSPC", period1, period2)
+downjones = yahoo_chart_history("^DJI", period1, period2)  # Dow Jones Industrial Average
+yield10y = yahoo_chart_history("^TNX", period1, period2)   # 10-year Treasury
+yield1y = yahoo_chart_history("^IRX", period1, period2)   # 1-year Treasury
+usd_index = yahoo_chart_history("DX-Y.NYB", period1, period2)  # US Dollar Index
+vix_level = yahoo_chart_history("^VIX", period1, period2)  # CBOE Volatility Index
+oil_price = yahoo_chart_history("CL=F", period1, period2)  # Crude Oil Price
+```
+
+```{python}
+fed_funds_rate = get_fred_series("FEDFUNDS")  # Federal Funds Rate
+inflation_rate = get_fred_series("CPIAUCSL")  # Consumer Price Index for All Urban Consumers: All Items
+unemployment_rate = get_fred_series("UNRATE")  # Unemployment Rate
+industrial_production_growth = get_fred_series("INDPRO")  # Industrial Production Index
+consumer_sentiment = get_fred_series("UMCSENT")  # University of Michigan: Consumer Sentiment
+
+baa = get_fred_series("BAA")
+treasury10 = get_fred_series("DGS10")
+credit_spread = (baa - treasury10).dropna()
+```
+
+```{python}
+sp500 = sp500[["date", "close"]].rename(columns={"close": "S&P 500"})
+downjones = downjones[["date", "close"]].rename(columns={"close": "Dow Jones"})
+yield10y = yield10y[["date", "close"]].rename(columns={"close": "10Y Yield"})
+yield1y = yield1y[["date", "close"]].rename(columns={"close": "1Y Yield"})
+usd_index = usd_index[["date", "close"]].rename(columns={"close": "USD Index"})
+vix_level = vix_level[["date", "close"]].rename(columns={"close": "Volatility Index"})
+oil_price = oil_price[["date", "close"]].rename(columns={"close": "Oil Price"})
+```
+
+```{python}
+fed_funds_rate = fed_funds_rate.rename(columns={"value": "fed_funds_rate"})
+inflation_rate = inflation_rate.rename(columns={"value": "inflation_rate"})
+unemployment_rate = unemployment_rate.rename(columns={"value": "unemployment_rate"})
+industrial_production_growth = industrial_production_growth.rename(columns={"value": "industrial_production"})
+credit_spread = credit_spread.rename(columns={"value": "credit_spread"})
+consumer_sentiment = consumer_sentiment.rename(columns={"value": "consumer_sentiment"})
+
+def fred_to_daily(df):
+    df_daily = df.resample("D").ffill()
+    return df_daily
+
+fed_funds_rate = fred_to_daily(fed_funds_rate)
+inflation_rate = fred_to_daily(inflation_rate)
+unemployment_rate = fred_to_daily(unemployment_rate)
+industrial_production_growth = fred_to_daily(industrial_production_growth)
+credit_spread = fred_to_daily(credit_spread)
+consumer_sentiment = fred_to_daily(consumer_sentiment)
+
+```
+
+```{python}
+sp500.set_index("date", inplace=True)
+downjones.set_index("date", inplace=True)
+yield10y.set_index("date", inplace=True)
+yield1y.set_index("date", inplace=True)
+usd_index.set_index("date", inplace=True)
+vix_level.set_index("date", inplace=True)
+oil_price.set_index("date", inplace=True)
+
+market = pd.concat([sp500, downjones, yield10y, yield1y, usd_index, oil_price, vix_level, fed_funds_rate, inflation_rate, unemployment_rate, industrial_production_growth, credit_spread, consumer_sentiment], axis=1).dropna()
+
+market['sp500_return'] = market['S&P 500'].pct_change()
+market['downjones_return'] = market['Dow Jones'].pct_change()
+market.reset_index(inplace=True)
+```
+
+# Preliminary Results
+
+```{python}
+original = market.columns.tolist()
+original.remove("date")
+predictors = [
+    "Volatility Index",
+    "10Y Yield",
+    "1Y Yield",
+    "USD Index",
+    "Oil Price",
+    "fed_funds_rate",
+    "inflation_rate",
+    "unemployment_rate",
+    "industrial_production",
+    "credit_spread",
+    "consumer_sentiment"
+]
+
+for p in predictors:
+    market[p + "_lag1"] = market[p].shift(1)
+market = market.dropna()
+```
+
+## A snapshot of the data
+```{python}
+market.head()
+```
+
+## Summary Statistics
+
+```{python}
+summary = market[[
+    "S&P 500",
+    "Dow Jones",
+    "Volatility Index",
+    "10Y Yield",
+    "1Y Yield",
+    "Oil Price",
+    "credit_spread",
+    "consumer_sentiment",
+    "sp500_return",
+    "downjones_return"
+]].describe().T
+
+summary = summary[["mean","std","min","max"]].round(3)
+
+summary
+```
+**Table 1. Descriptive Statistics of the Dataset**
+
+Table 1 reports descriptive statistics for the main variables used in the analysis. 
+Over the sample period, both the S&P 500 and the Dow Jones indices display very 
+large ranges between their minimum and maximum values, reflecting the long time 
+span of the dataset and the substantial growth of U.S. equity markets since 2000.
+
+The Volatility Index (VIX) has an average level of approximately 19.8, but its 
+maximum exceeds 80 during periods of extreme financial stress. Such spikes occur 
+during major market disruptions, including the 2008 global financial crisis and 
+the COVID-19 market collapse in 2020. Oil prices also show substantial variation 
+over time, including the unprecedented negative prices briefly observed during 
+the 2020 oil market shock. The dates where these two variables reach extreme or 
+unusual values will be examined below.
+
+Daily returns of the S&P 500 and Dow Jones are centered close to zero, with a 
+standard deviation of 1.2%. This is consistent with the well-known 
+statistical property that financial returns fluctuate around a small mean but 
+exhibit considerable volatility.
+
+---
+
+### High-Volatility Dates
+
+```{python}
+high_vol_monthly = (
+    market.loc[market["Volatility Index"] > 40, "date"]
+    .dt.to_period("M")
+    .value_counts()
+    .sort_index()
+    .rename_axis("Month")
+    .reset_index(name="Days with VIX > 40")
+)
+
+high_vol_monthly["Month"] = high_vol_monthly["Month"].astype(str)
+high_vol_monthly.set_index("Month", inplace=True)
+high_vol_monthly
+```
+
+**Table 2. High-Volatility Months With VIX > 40**
+
+Table 2 reports months in which the Volatility Index exceeded 40 on at least one trading day, along with the number of such days within each month. Extreme volatility events are highly concentrated in a small number of crisis periods rather than being evenly distributed across the sample.
+
+The largest clusters occur during the global financial crisis of 2008–2009. For example, October 2008 and March 2009 both contain more than twenty trading days with VIX values above 40, indicating sustained market stress during this period. Another major cluster appears in early 2020, corresponding to the market turmoil associated with the COVID-19 pandemic, when March and April 2020 contain 18 and 14 extreme-volatility days respectively.
+
+Outside of these crisis episodes, extreme volatility occurs only sporadically, such as after the September 11 attacks in New York City, during the European debt crisis in 2011, or in response to the United States tariff policy in April 2025. This pattern highlights that extreme volatility events are rare and tend to be associated with major macroeconomic shocks. 
+
+---
+
+### Negative Oil Price Dates
+```{python}
+display(market[market['Oil Price'] <= 0].reset_index(drop = True))
+```
+
+**Table 3. Negative Oil Price Dates**
+
+The only occurence of negative oil prices in the dataset is on April 20, 2020, when the West Texas Intermediate crude oil futures contract for May delivery briefly traded below zero, mainly driven by the unprecedented collapse in demand during the COVID-19 pandemic and a supply glut. 
+
+---
+
+## Stock Market Indices Over Time
+
+```{python}
+market_long = market.melt(
+    id_vars="date",
+    value_vars=["S&P 500", "Dow Jones"],
+    var_name="Indices",
+    value_name="value"
+)
+
+(
+    ggplot(market_long, aes(x="date", y="value", color="Indices")) +
+    geom_line() +
+    labs(
+        title="S&P 500 and Dow Jones Index Over Time",
+        x="Date",
+        y="Index Level",
+        color="Index"
+    ) +
+    theme_minimal()
+)
+```
+
+**Figure 1. S&P 500 and Dow Jones Index Over Time**
+
+Figure 1 illustrates the historical evolution of the two major U.S. stock market 
+indices included in the dataset. Both indices show strong long-term upward trends, 
+reflecting economic expansion, corporate earnings growth, and increasing market 
+capitalization over the past several decades.
+
+Despite this overall growth trend, several sharp market declines are visible. 
+Notable drops occur during the 2000 dot-com crash, the 2008 global financial 
+crisis, and the market shock associated with the COVID-19 pandemic in early 2020. 
+The S&P 500 and Dow Jones move closely together throughout the sample period, 
+suggesting that they capture similar underlying market conditions and respond 
+similarly to macroeconomic shocks. In fact, as the heat map below will show, the two indices have a correlation as high as 0.99, which is expected given that they both represent broad measures of U.S. equity market performance.
+
+---
+
+## Market Volatility Over Time
+
+```{python}
+(
+    ggplot(market, aes(x="date", y="Volatility Index")) +
+    geom_line(color="darkred") +
+    labs(
+        title="Market Volatility Over Time",
+        x="Date",
+        y="Index Level",
+    ) +
+    theme_minimal()
+)
+```
+
+**Figure 2. Market Volatility (VIX) Over Time**
+
+Figure 2 plots the CBOE Volatility Index (VIX), which is commonly interpreted as 
+a measure of market uncertainty or investor fear. The index remains relatively 
+low during stable market conditions but spikes sharply during financial crises 
+and periods of heightened uncertainty.
+
+Large spikes are clearly visible during the 2008 financial crisis and again in 
+2020 during the global pandemic. Outside of crisis periods, the VIX generally 
+remains between approximately 10 and 25, indicating relatively calm market 
+conditions. These patterns highlight the role of volatility as an important 
+indicator of financial stress.
+
+---
+
+## Distribution of Daily Stock Returns
+
+```{python}
+returns_long = market.melt(
+    id_vars=["date", "Volatility Index"],
+    value_vars=["sp500_return", "downjones_return"],
+    var_name="index",
+    value_name="return"
+)
+
+(
+    ggplot(returns_long, aes(x="return", fill="index")) +
+    geom_histogram(bins=80, alpha=0.5, position="identity") +
+    labs(
+        title="Distribution of Daily Returns",
+        x="Daily Return",
+        y="Count",
+        fill="Index"
+    ) +
+    theme_minimal()
+)
+```
+
+**Figure 3. Distribution of Daily Returns**
+
+The distribution of daily returns for both the S&P 500 and the Dow Jones indices is centered near zero, with most observations concentrated around small positive or negative values. However, the distribution exhibits heavy tails, meaning that large positive and negative returns occasionally occur. 
+This pattern is typical of financial return series and reflects the presence of extreme market events and volatility clustering.
+One notable feature is that the two distributions appear to be almost identical, which is consistent with the very high correlation between the two indices. This suggests that they are influenced by similar underlying market factors and respond similarly to macroeconomic conditions, and that we may only model one of the two indices in subsequent analyses without losing much information.
+
+---
+
+## Relationship Between Volatility and Returns
+
+```{python}
+(
+    ggplot(returns_long, aes(x="Volatility Index", y="return", color="index")) +
+    geom_point(alpha=0.2) +
+    geom_smooth(method="lm") +
+    labs(
+        title="Relationship Between Market Volatility (VIX) and Stock Returns",
+        x="VIX",
+        y="Daily Return",
+        color="Index"
+    ) +
+    theme_minimal()
+)
+
+```
+
+**Figure 4. Relationship Between Market Volatility (VIX) and Stock Returns**
+
+The fitted regression lines suggest a weak negative relationship between market volatility and daily returns. As VIX values increase, the average daily return tends to decrease slightly, indicating that higher levels of market uncertainty are often associated with poorer market performance.
+
+Most observations are concentrated at lower volatility levels , where daily returns tend to cluster closely around zero. As volatility increases beyond this range, the dispersion of returns becomes noticeably wider. High VIX levels are associated with both large positive and large negative returns, indicating that extreme volatility corresponds to greater uncertainty and larger market movements in both directions.
+
+---
+
+### Difference in Returns During Extreme Volatility
+
+To examine whether extreme volatility periods are associated with different stock market performance, we compare mean S&P 500 daily returns between high-volatility days (VIX > 40) and normal days.
+
+**Null hypothesis (H₀):**  
+The mean S&P 500 return is the same during high-volatility periods and normal periods.
+
+**Alternative hypothesis (H₁):**  
+The mean S&P 500 return is lower during high-volatility periods than during normal periods.
+
+```{python}
+high_vol = market.loc[market["Volatility Index"] > 40, "sp500_return"].dropna()
+normal_vol = market.loc[market["Volatility Index"] <= 40, "sp500_return"].dropna()
+
+t_stat, p_val = ttest_ind(high_vol, normal_vol, equal_var=False, alternative = 'less')
+
+summary = pd.DataFrame({
+    "Statistic": ["t-statistic", "p-value"],
+    "Value": [t_stat, p_val]
+})
+
+summary
+```
+**Table 3. Results of Two-Sample t-Test On Difference In Mean Return**
+
+The p-value is 0.00256, which is less than the common significance level of 0.05. This indicates that we reject the null hypothesis and conclude that mean S&P 500 returns are significantly lower during high-volatility periods (VIX > 40) compared to normal periods, as expected based on the negative relationship observed in the scatter plot.
+
+## Relationship Between Treasury Yields and Returns
+
+```{python}
+yield_long = market.melt(
+    id_vars=["date", "10Y Yield"],
+    value_vars=["sp500_return", "downjones_return"],
+    var_name="index",
+    value_name="return"
+)
+
+(
+    ggplot(yield_long, aes(x="10Y Yield", y="return", color="index")) +
+    geom_point(alpha=0.2) +
+    geom_smooth(method="lm") +
+    labs(
+        title="Relationship Between 10-Year Treasury Yield and Stock Returns",
+        x="10-Year Treasury Yield",
+        y="Daily Return",
+        color="Index"
+    ) +
+    theme_minimal()
+)
+```
+
+**Figure 5. Relationship Between 10-Year Treasury Yield and Stock Returns**
+
+The fitted regression line appears nearly flat, indicating a very weak linear relationship between long-term interest rates and short-term stock returns. This suggests that daily fluctuations in equity markets are not strongly driven by the level of the 10-year Treasury yield. While interest rates influence valuation models through discount rates and cost of capital, their immediate effect on daily market movements appears limited.
+
+Most observations cluster around small positive or negative returns, with occasional outliers reflecting periods of heightened market volatility. These extreme values likely correspond to major macroeconomic announcements, monetary policy shifts, or unexpected financial market shocks. Overall, the evidence suggests that although Treasury yields are a key macroeconomic indicator, their short-term relationship with daily stock returns is relatively weak.
+
+---
+
+## Relationship Between Oil Prices and Returns
+
+```{python}
+oil_long = market.melt(
+    id_vars=["date","Oil Price"],
+    value_vars=["sp500_return","downjones_return"],
+    var_name="index",
+    value_name="return"
+)
+
+(
+    ggplot(oil_long, aes(x="Oil Price", y="return", color="index")) +
+    geom_point(alpha=0.2) +
+    geom_smooth(method="lm") +
+    labs(
+        title="Relationship Between Oil Price and Stock Returns",
+        x="Oil Price",
+        y="Daily Return",
+        color="Index"
+    ) +
+    theme_minimal()
+)
+```
+
+**Figure 6. Relationship Between Oil Price and Stock Returns**
+
+A concentration of observations occurs when oil prices are between roughly $40 and $100 per barrel, where most market activity took place during the sample period. Returns remain centered around zero in this range. However, it is possible that although the two aggregated indices' return is independent from oil prices, there are still stocks, when evaluated on their own, may be impacted and should be further studied.  
+
+---
+
+## Correlation Between Market Indicators
+
+```{python}
+corr = market[original].corr()
+
+corr_df = corr.reset_index().melt(id_vars="index")
+
+(
+    ggplot(corr_df, aes(x="index", y="variable", fill="value")) +
+    geom_tile() +
+    scale_fill_gradient2(low="blue", mid="white", high="red") +
+    labs(
+        title="Correlation Heatmap of Market Indicators",
+        x="Variable",
+        y="Variable",
+        fill="Correlation"
+    ) +
+    theme_minimal() +
+    theme(
+        axis_text_x=element_text(rotation=45, hjust=1)
+    )
+)
+```
+
+**Figure 7. Correlation Heatmap of Market Indicators**
+
+Strong positive correlations are visible among major equity indices. In particular, the S&P 500 and Dow Jones indices exhibit near-perfect correlation, which is expected because both indices track the performance of large U.S. companies and tend to respond similarly to overall market conditions.
+
+Several macroeconomic variables demonstrate meaningful relationships with financial conditions. Industrial production and inflation exhibit moderate positive correlation, suggesting that stronger economic activity often coincides with higher price pressures. Meanwhile, the unemployment rate tends to be negatively correlated with industrial production, consistent with the economic cycle in which stronger output is associated with lower unemployment.
+
+Financial stress indicators show distinct patterns as well. The Volatility Index and credit spread measures tend to move together, reflecting periods when investors demand higher compensation for risk. These variables generally show negative correlations with equity indices, indicating that higher market uncertainty or credit risk is often associated with weaker stock market performance.
+
+In contrast, correlations between many macroeconomic indicators and daily stock returns (e.g., S&P 500 return and Dow Jones return) are relatively weak. This suggests that while macroeconomic variables influence long-term market trends, they may not provide strong explanatory power for short-term daily fluctuations in equity returns. 
+
+---
+
+### Statistical Significance of Correlations
+
+```{python}
+corr_tests = []
+
+for var in [
+    "Volatility Index_lag1",
+    "10Y Yield_lag1",
+    "USD Index_lag1",
+    "Oil Price_lag1",
+    "credit_spread_lag1",
+    "consumer_sentiment_lag1"
+]:
+    
+    corr, p = pearsonr(market[var], market["sp500_return"])
+    corr_tests.append({
+        "Predictor": var,
+        "Correlation": corr,
+        "p-value": p
+    })
+
+pd.DataFrame(corr_tests)
+```
+
+Table 4 reports Pearson correlation tests between lagged macro-financial indicators and daily S&P 500 returns. The lag structure ensures that predictors reflect information available on the previous trading day, avoiding look-ahead bias.
+
+The results indicate that most predictors have extremely weak correlations with daily stock returns. Lagged volatility (VIX) shows a small positive correlation with returns (r = 0.038, p = 0.002), while the 10-year Treasury yield shows a small negative correlation (r = −0.031, p = 0.014). Although these relationships are statistically significant, their magnitudes are extremely small.
+
+Other predictors—including the USD index, oil prices, credit spreads, and consumer sentiment—show no statistically significant correlation with daily returns. Overall, these results suggest that macro-financial indicators have limited ability to explain short-term movements in stock market returns.
+
+---
+
+### Predictive Regression
+
+```{python}
+X = market[[
+    "Volatility Index_lag1",
+    "10Y Yield_lag1",
+    "USD Index_lag1",
+    "Oil Price_lag1",
+    "credit_spread_lag1",
+    "consumer_sentiment_lag1"
+]]
+
+X = sm.add_constant(X)
+
+y = market["sp500_return"]
+
+model = sm.OLS(y, X).fit()
+
+display(model.summary2().tables[1])
+```
+**$R^2 = 0.005$, Dependent Variable is Next Day S&P 500 Return**
+
+
+The predictive regression examines whether lagged macro-financial indicators help explain daily S&P 500 returns. The overall model is statistically significant (F = 5.53, *p* < 0.001), but the explanatory power is very small ($R^2 = 0.005$): the predictors explain only about 0.5% of the variation in daily returns.
+
+Among the predictors, lagged market volatility, the 10-year Treasury yield, the USD index, and credit spreads are statistically significant. Lagged volatility has a positive coefficient, while the 10-year yield, USD index, and credit spreads show negative relationships with returns. Oil prices show weak evidence of a relationship, and consumer sentiment does not appear to be statistically significant.
+
+Overall, while some macro-financial indicators are statistically related to next-day returns, their effects are small in magnitude.
+
+# Summary
+
+## Results So Far
+
+The results so far suggest that the collected indicators contain some statistically detectable information, but their ability to explain daily stock returns is very limited. The descriptive analysis shows that the sample includes clear episodes of market stress, especially during the 2008 financial crisis and the 2020 COVID-19 market collapse. These crisis periods are visible in both the stock index plots and the volatility series, and the VIX exceeds 40 only during a relatively small number of months concentrated around major shocks. This indicates that extreme volatility is not a common market state, but when it occurs, it is associated with severe disruptions in financial conditions.
+
+The return distribution also shows that daily stock returns are centered close to zero and have heavy tails. This means that most days involve small changes, but large positive and negative returns occur more frequently than would be expected under a normal distribution. This feature already suggests that predicting daily returns will be difficult, because the series is noisy and driven partly by rare but important shocks.
+
+The relationship plots provide a mixed picture. The VIX has the clearest visual relationship with stock returns: as volatility rises, average returns tend to become lower, and the dispersion of returns becomes wider. The t-test confirms that mean S&P 500 returns are significantly lower on days with extreme volatility (VIX > 40) than on normal days. In contrast, the scatter plots for the 10-year Treasury yield and oil prices show much weaker patterns. The fitted lines are nearly flat, and the observations remain widely dispersed across the range of these variables. This suggests that these indicators may not have strong direct linear relationships with daily returns at a one-day horizon.
+
+The correlation analysis leads to a similar conclusion. Lagged volatility and lagged Treasury yields show statistically significant correlations with next-day S&P 500 returns, but the magnitudes of these correlations are extremely small. Other lagged predictors, such as the USD index, oil prices, credit spreads, and consumer sentiment, do not show statistically significant simple correlations. This means that while some variables appear related to returns, the strength of those relationships is weak in practical terms.
+
+The predictive regression produces the same general finding. The model is statistically significant overall, which indicates that the predictors jointly contain some information about next-day returns. However, the explanatory power is very low, with an $R^2$ of approximately 0.005. In other words, the model explains only about 0.5% of the variation in daily S&P 500 returns. Lagged volatility, the 10-year Treasury yield, the USD index, and credit spreads are statistically significant in the regression, while oil prices show only weak evidence and consumer sentiment is not significant. Taken together, these results suggest that daily macro-financial indicators may have limited short-run predictive content, but they are far from sufficient for strong return prediction on their own.
+
+At this stage, my answer to the original research question is therefore conservative: daily macro-financial indicators appear to have weak predictive relationships with future stock market returns, but their practical predictive power is very small when tested using simple linear methods. This does not mean the indicators are useless. Instead, it suggests that the relationships may be nonlinear, state-dependent, or only visible when variables are combined in more flexible predictive models. 
+
+---
+
+## Plan for the Final Project
+
+### Additional data collection
+
+Although the current dataset covers a long historical period (2020–2026) and includes several major macro-financial indicators, it is still limited in a few important ways. First, the set of predictors currently focuses primarily on broad macroeconomic variables and market indicators. While these variables capture overall economic conditions, they may not fully reflect the information that investors use to form short-term expectations about market movements. In particular, the dataset does not yet include variables related to monetary policy expectations, credit market stress beyond simple spreads, or other financial market indicators that may contain predictive information.
+
+For the final project, I therefore plan to expand the dataset by collecting several additional variables from the FRED API and other financial data sources. Possible additions include:
+
+- **Term spread indicators** such as the difference between the 10-year and 3-month Treasury yields, which are widely used measures of economic expectations.
+- **Corporate credit market indicators**, such as additional bond spreads or financial stress indices.
+- **Monetary policy expectation measures**, such as futures-implied policy rates or alternative interest-rate series available through FRED.
+- **Market liquidity indicators**, if available through accessible APIs.
+- **Additional equity market indicators**, such as trading volume or other volatility measures derived from market data.
+
+These variables may capture different dimensions of financial conditions and could improve predictive performance when used in machine learning models.
+
+Another limitation of the current dataset is that it uses only daily frequency data. Some macroeconomic variables, such as inflation, unemployment, and industrial production, are naturally measured monthly. In the current dataset these series were forward-filled to daily frequency to align them with market data. While this approach allows the variables to be included in the analysis, it may reduce the effective information content of those predictors at a daily horizon. In the final project, I will therefore carefully examine whether models perform better when using features derived from higher-frequency financial variables (such as volatility, credit spreads, and market momentum) rather than relying heavily on low-frequency macroeconomic indicators.
+
+---
+
+### Planned feature engineering
+
+Before fitting machine learning models, I will expand the predictor set beyond the simple one-day lag structure used in the midterm. The final feature set will include:
+
+1. **Multiple lags of each predictor**  
+   Instead of using only lag 1, I will create lag 1, lag 3, lag 5, and lag 10 versions for variables such as VIX, Treasury yields, USD index, oil prices, and credit spreads. This will allow the models to detect delayed effects rather than assuming that all predictive information enters only one day later.
+
+2. **Rolling averages and moving-window summaries**  
+   For variables such as VIX, oil prices, and Treasury yields, I will calculate 5-day, 10-day, and 20-day rolling means. These features may capture persistent market conditions better than single-day values.
+
+3. **Rolling volatility of stock returns**  
+   I will compute 5-day, 10-day, and 20-day rolling standard deviations of S&P 500 and Dow Jones returns. This will provide a direct measure of recent market turbulence and may improve prediction compared to using the VIX alone.
+
+4. **Momentum features**  
+   I will calculate recent cumulative returns over short windows such as 5, 10, and 20 trading days. This will allow the models to capture short-run persistence or reversal effects in the stock indices.
+
+5. **Rate-of-change features for macro-financial variables**  
+   For example, instead of using only the level of oil prices or Treasury yields, I will also include daily or weekly changes in these variables. Sudden changes may be more informative than levels.
+
+6. **Interaction terms for linear benchmark models**  
+   In the linear-model comparison stage, I will test interactions such as VIX × credit spread and yield × USD index to examine whether the effect of one variable depends on the level of another.
+
+7. **Alternative target definitions**  
+   I will primarily predict next-day S&P 500 returns, but I will also test:
+   - next-day Dow Jones returns
+   - the sign of the next-day return (up/down classification)
+   - 5-day ahead cumulative returns  
+   
+   These alternative targets will help determine whether macro-financial predictors are more useful for direction prediction or slightly longer forecast horizons.
+
+---
+
+### Planned models for the final project
+
+#### 1. Baseline benchmark models
+
+These models will provide a reference point for judging whether more complex methods actually improve predictive performance.
+
+- **Mean return benchmark**  
+  Predict the historical average return for every observation.
+- **Naive zero-return benchmark**  
+  Predict that next-day return equals zero.
+- **Lagged linear OLS benchmark**  
+  Use the same regression structure as in the midterm as a baseline linear model.
+
+#### 2. Finance benchmark
+
+I may include a **CAPM-style market benchmark** (a model of expected return in finance theory), but only as a conceptual comparison rather than as the main model, because the project is about predicting market index returns from macro-financial variables rather than explaining asset returns cross-sectionally. Since CAPM is more suitable for individual asset excess returns relative to the market, it is not the most natural primary model for this question. However, it is still possible to construct a simplified benchmark using the market index and risk-free rate if I decide to compare traditional finance intuition against data-driven predictive methods.
+
+#### 3. Tree-based models
+
+These models are especially important because the midterm results suggest the relationships may be nonlinear.
+
+- **Decision Tree Regressor**
+- **Random Forest Regressor**
+- **Gradient Boosting Regressor**
+- **XGBoost or LightGBM** if available in the final setup
+
+These models can capture threshold effects and nonlinear interactions, such as volatility mattering only above certain levels or credit spreads becoming important during stress periods.
+
+#### 4. Classification models
+
+If I include a directional target (positive vs negative next-day return), I will test:
+
+- **Logistic Regression**
+- **Random Forest Classifier**
+- **Gradient Boosting Classifier**
+- **XGBoost Classifier**
+
+This will allow me to examine whether macro-financial variables predict the direction of returns better than the exact return value.
+
+---
+
+### Final evaluation and answering the research question
+
+The final step of the project will be to evaluate whether ML models can meaningfully improve prediction of stock market returns using macro-financial indicators. After constructing the expanded feature set and training the proposed models, each model will be evaluated using out-of-sample test data and time-consistent validation methods.
+
+Model performance will be compared using several metrics, including RMSE, MAE, and out-of-sample $R^2$ for regression models, as well as accuracy and ROC-AUC if classification models are used to predict the direction of returns. Each model will also be compared against the benchmark models.
+
+Depending on the performance of these models, the central research question will be addressed. If the models substantially outperform the benchmark models and demonstrate stable predictive performance on unseen data, this would suggest that macro-financial indicators contain useful predictive information for short-term stock market returns. Conversely, if even flexible ML models fail to meaningfully improve prediction accuracy, the results would support the conclusion that daily stock market returns are largely unpredictable using the available macro-financial indicators.
