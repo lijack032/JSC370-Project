@@ -13,7 +13,7 @@ execute:
 jupyter: python3
 ---
 
-This page presents three interactive visualizations created from the final project dataset. These figures explore how volatility, return distributions, and market regimes relate to future S&P 500 returns. Each plot includes hover information, and users can zoom or pan within the plot area.
+This page presents four interactive visualizations created from the final project dataset. These figures explore how volatility, return distributions, and market regimes relate to future S&P 500 returns. Each plot includes hover information, and users can zoom or pan within the plot area.
 
 ```{python}
 import pandas as pd
