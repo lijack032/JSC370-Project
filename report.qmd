@@ -7,6 +7,7 @@ format:
     toc-location: right
     code-overflow: scroll
   pdf:
+    author: "Jack Li"
     documentclass: article
     geometry: margin=1in
     toc: false
@@ -17,7 +18,9 @@ execute:
 jupyter: python3
 ---
 
+::: {.content-visible when-format="pdf"}
 [GitHub Repository](https://github.com/lijack032/JSC370-Project)
+:::
 
 # Introduction
 
@@ -278,6 +281,7 @@ The Yahoo Finance series included the **S&P 500 Index**, **Dow Jones Industrial 
 Macroeconomic data were collected from the **FRED API** using a custom function that requested observations for each FRED series ID. The JSON output from FRED was converted into a pandas data frame with two main columns: **date** and **value**. The FRED series included the **Federal Funds Rate**, **Consumer Price Index (CPI)**, **unemployment rate**, **industrial production index**, **University of Michigan Consumer Sentiment Index**, **Moody’s BAA corporate bond yield**, and the **10-year Treasury yield**. In addition, a **credit spread** variable was constructed as the difference between Moody’s BAA corporate bond yield and the 10-year Treasury yield, representing perceived credit risk and financial stress.
 
 The final merged dataset combines daily financial indicators with lower-frequency macroeconomic variables and spans multiple decades of U.S. economic history, including expansions, recessions, financial crises, inflationary periods, and monetary tightening cycles.
+
 ---
 
 ## Data Cleaning and Wrangling
@@ -290,7 +294,7 @@ After the individual series were cleaned and renamed, all variables were merged 
 
 Daily stock returns were computed using percentage changes in index closing prices. The primary dependent variable is the **next-period S&P 500 return**, while secondary targets include Dow Jones returns and binary direction indicators equal to one when the future return is positive and zero otherwise.
 
-To avoid look-ahead bias, predictor variables were lagged so that only information available at time \(t\) is used to predict returns at time \(t+1\), \(t+5\), or \(t+20\).
+To avoid look-ahead bias, predictor variables were lagged so that only information available at time $t$ is used to predict returns at time $t+1$, $t+5$, or $t+20$.
 
 ---
 
