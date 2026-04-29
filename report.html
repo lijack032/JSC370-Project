@@ -287,7 +287,7 @@ window.Quarto = {
 </ul>
 <p>These analyses were used to assess distributional shape, outliers, temporal trends, and potential predictor relationships.</p>
 <p>Here is a sample of the data distribution of finalized daily S&amp;P 500 returns:</p>
-<div id="35c63cb9" class="cell" data-execution_count="11">
+<div id="784b958e" class="cell" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -400,7 +400,7 @@ window.Quarto = {
 <li><strong>Test set:</strong> held out until the end for final out-of-sample evaluation</li>
 </ul>
 <p>This setup more closely reflects the real forecasting problem faced by investors, where only historical information is available when making predictions.</p>
-<div id="39c408ed" class="cell" data-execution_count="15">
+<div id="f1d930b1" class="cell" data-execution_count="15">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -458,7 +458,7 @@ window.Quarto = {
 <p>This section presents the final out-of-sample results for both prediction tasks: forecasting the numerical value of future S&amp;P 500 returns and classifying whether future returns are positive or negative. The models are evaluated across 1-day, 5-day, and 20-day horizons. Regression performance is assessed using RMSE, MAE, and out-of-sample R², while classification performance is assessed using accuracy and ROC-AUC.</p>
 <section id="dataset-and-split-summary" class="level2">
 <h2 class="anchored" data-anchor-id="dataset-and-split-summary">Dataset and Split Summary</h2>
-<div id="fdd4a9e4" class="cell" data-execution_count="23">
+<div id="9ef4ceef" class="cell" data-execution_count="23">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -523,7 +523,7 @@ window.Quarto = {
 </section>
 <section id="model-performance-tables" class="level2">
 <h2 class="anchored" data-anchor-id="model-performance-tables">Model Performance Tables</h2>
-<div id="8d97cd11" class="cell" data-execution_count="24">
+<div id="94d6bad6" class="cell" data-execution_count="24">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -692,7 +692,7 @@ window.Quarto = {
 </div>
 <p><strong>Table 2. Regression Performance Summary</strong></p>
 <p>Table 2 shows that the regression models had weak out-of-sample performance across all three forecast horizons. At the 1-day horizon, Random Forest performed best, with an RMSE of 0.01140 and a small positive <span class="math inline">\(R^2\)</span> of 0.00384. This means it slightly improved over the mean benchmark, whose <span class="math inline">\(R^2\)</span> was -0.00045, but the improvement was extremely small. XGBoost and Lasso were very close to the mean benchmark, with <span class="math inline">\(R^2\)</span> values of -0.00013 and -0.00017, respectively. At the 5-day horizon, XGBoost performed best with an <span class="math inline">\(R^2\)</span> of -0.00083, followed closely by Lasso at -0.00091. These values are still slightly negative, showing almost no meaningful predictive gain over the benchmark. At the 20-day horizon, the mean benchmark performed best, with an <span class="math inline">\(R^2\)</span> of -0.01352, while all fitted models performed worse. XGBoost performed especially poorly at this horizon, with an <span class="math inline">\(R^2\)</span> of -1.43134. Overall, the results suggest that the engineered macro-financial indicators provide very limited ability to predict the exact size of future S&amp;P 500 returns. The only positive <span class="math inline">\(R^2\)</span> appears for the 1-day Random Forest model, but the value is so close to zero that it should be interpreted as a very weak improvement rather than strong predictive power. In relation to the research question, this table suggests that machine learning models provide little improvement for predicting exact return size, even when many macro-financial predictors are included.</p>
-<div id="808c56ab" class="cell" data-execution_count="25">
+<div id="2b6b5869" class="cell" data-execution_count="25">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -803,7 +803,7 @@ window.Quarto = {
 <p>At the 5-day horizon, classification performance was weaker. Logistic Regression had the highest ROC-AUC among the fitted models, but its value was 0.49491, which is slightly below the random benchmark of 0.50. XGBoost and Random Forest also performed below 0.50, with ROC-AUC values of 0.46970 and 0.42498. The majority-class benchmark had the highest accuracy at 0.58342, but this does not necessarily mean it was a better predictive model. It mainly reflects the fact that one class was more common in the 5-day test set.</p>
 <p>At the 20-day horizon, Logistic Regression again performed best by ROC-AUC, reaching 0.57166. This is the strongest classification result in the table and suggests some ability to distinguish positive from non-positive 20-day returns. However, its accuracy was only 0.39320, while the majority-class benchmark had an accuracy of 0.64081. This shows why ROC-AUC is more useful than accuracy here: accuracy is strongly affected by class imbalance, while ROC-AUC evaluates the model’s ranking ability across different thresholds. Overall, the classification results suggest that directional prediction is still weak, but the 20-day Logistic Regression model shows the clearest predictive signal.</p>
 <p>In relation to the research question, these results suggest that direction classification is somewhat more promising than return-size prediction, but the improvement over random classification is still modest.</p>
-<div id="eb3bacc4" class="cell" data-execution_count="26">
+<div id="dd7f57fb" class="cell" data-execution_count="26">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -851,7 +851,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 4. Best Regression Model by Forecast Horizon</strong></p>
-<div id="c4ed291f" class="cell" data-execution_count="27">
+<div id="275ccef4" class="cell" data-execution_count="27">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -900,7 +900,7 @@ window.Quarto = {
 </section>
 <section id="hyperparameter-tuning-results" class="level2">
 <h2 class="anchored" data-anchor-id="hyperparameter-tuning-results">Hyperparameter Tuning Results</h2>
-<div id="88b83e60" class="cell" data-execution_count="30">
+<div id="7e795b94" class="cell" data-execution_count="30">
 <div class="cell-output cell-output-display" data-execution_count="25">
 <div>
 
@@ -940,7 +940,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 6. Ridge Regression Hyperparameters</strong></p>
-<div id="c4abdda9" class="cell" data-execution_count="31">
+<div id="558117bc" class="cell" data-execution_count="31">
 <div class="cell-output cell-output-display" data-execution_count="26">
 <div>
 
@@ -1026,7 +1026,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 7. Random Forest Hyperparameters</strong></p>
-<div id="62e1a63f" class="cell" data-execution_count="32">
+<div id="aed73e8e" class="cell" data-execution_count="32">
 <div class="cell-output cell-output-display" data-execution_count="27">
 <div>
 
@@ -1144,7 +1144,7 @@ window.Quarto = {
 </section>
 <section id="statistical-comparison-across-horizons" class="level2">
 <h2 class="anchored" data-anchor-id="statistical-comparison-across-horizons">Statistical Comparison Across Horizons</h2>
-<div id="485a8029" class="cell" data-execution_count="33">
+<div id="8257c02b" class="cell" data-execution_count="33">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -1176,7 +1176,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Table 9. Friedman Test for Regression Performance Across Horizons</strong></p>
-<div id="618f642b" class="cell" data-execution_count="34">
+<div id="4b1e472f" class="cell" data-execution_count="34">
 <div class="cell-output cell-output-display">
 <div>
 
@@ -1215,7 +1215,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="regression-performance">Regression Performance</h2>
 <section id="best-out-of-sample-r²-by-horizon" class="level3">
 <h3 class="anchored" data-anchor-id="best-out-of-sample-r²-by-horizon">Best Out-of-Sample R² by Horizon</h3>
-<div id="03f0df9d" class="cell" data-execution_count="35">
+<div id="cf36bf83" class="cell" data-execution_count="35">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1229,7 +1229,7 @@ window.Quarto = {
 </section>
 <section id="best-roc-auc-by-horizon" class="level3">
 <h3 class="anchored" data-anchor-id="best-roc-auc-by-horizon">Best ROC-AUC by Horizon</h3>
-<div id="a0b28f73" class="cell" data-execution_count="36">
+<div id="df39ea45" class="cell" data-execution_count="36">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1243,7 +1243,7 @@ window.Quarto = {
 </section>
 <section id="regression-model-comparison-heatmap" class="level3">
 <h3 class="anchored" data-anchor-id="regression-model-comparison-heatmap">Regression Model Comparison Heatmap</h3>
-<div id="d3a11304" class="cell" data-execution_count="37">
+<div id="a1c71af2" class="cell" data-execution_count="37">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1257,7 +1257,7 @@ window.Quarto = {
 </section>
 <section id="classification-model-comparison-heatmap" class="level3">
 <h3 class="anchored" data-anchor-id="classification-model-comparison-heatmap">Classification Model Comparison Heatmap</h3>
-<div id="08c25421" class="cell" data-execution_count="38">
+<div id="d667f999" class="cell" data-execution_count="38">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1274,7 +1274,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="prediction-diagnostics">Prediction Diagnostics</h2>
 <section id="actual-vs-predicted-returns" class="level3">
 <h3 class="anchored" data-anchor-id="actual-vs-predicted-returns">Actual vs Predicted Returns</h3>
-<div id="8da9e84a" class="cell" data-execution_count="40">
+<div id="a359b0e9" class="cell" data-execution_count="40">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1284,7 +1284,7 @@ window.Quarto = {
 </div>
 </div>
 <p><strong>Figure 5. Actual vs Predicted Returns for the Best Overall Regression Model</strong></p>
-<div id="3cad303e" class="cell" data-execution_count="41">
+<div id="c45138e7" class="cell" data-execution_count="41">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1299,7 +1299,7 @@ window.Quarto = {
 </section>
 <section id="roc-curve-for-best-classifier" class="level3">
 <h3 class="anchored" data-anchor-id="roc-curve-for-best-classifier">ROC Curve for Best Classifier</h3>
-<div id="72ac2f09" class="cell" data-execution_count="42">
+<div id="87a29fab" class="cell" data-execution_count="42">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1314,7 +1314,7 @@ window.Quarto = {
 </section>
 <section id="feature-importance-and-model-interpretation" class="level2">
 <h2 class="anchored" data-anchor-id="feature-importance-and-model-interpretation">Feature Importance and Model Interpretation</h2>
-<div id="1ca4872a" class="cell" data-execution_count="44">
+<div id="3fbaea98" class="cell" data-execution_count="44">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1325,7 +1325,7 @@ window.Quarto = {
 </div>
 <p><strong>Figure 8. Random Forest Regressor Feature Importance for 1-Day Return Prediction</strong></p>
 <p>Figure 8 shows the most important predictors used by the Random Forest model for 1-day S&amp;P 500 return prediction. The top predictors are mainly volatility and momentum variables. The most important feature is the 1-day change in the VIX, followed by the 5-day change in the VIX, 20-day Dow Jones momentum, the VIX level itself, and shorter-term S&amp;P 500 and Dow Jones momentum measures. This suggests that the Random Forest model relied more on recent market sentiment, volatility changes, and price momentum than on slower-moving macroeconomic indicators. For example, variables such as unemployment, inflation, and industrial production do not appear among the top features, while VIX-related and momentum variables dominate the ranking. However, these importance values should be interpreted as model-based associations rather than causal effects. They show which variables the model used most for prediction, not which variables directly caused future returns.</p>
-<div id="080e19ab" class="cell" data-execution_count="46">
+<div id="cb920c7e" class="cell" data-execution_count="46">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">

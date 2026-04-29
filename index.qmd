@@ -43,9 +43,7 @@ execute:
 jupyter: python3
 ---
 
----
-title: "Predicting S&P 500 Returns with Macro-Financial Indicators"
----
+
 
 # Project Overview
 

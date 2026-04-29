@@ -1,6 +1,6 @@
 project:
   type: website
-  output-dir: "."
+  output-dir: docs
 
 website:
   title: "Predicting S&P 500 Returns"
