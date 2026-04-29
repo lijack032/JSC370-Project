@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>JSC370 Final Report – Predicting S&amp;P 500 Returns</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Predicting S&amp;P 500 Returns</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./report.html" aria-current="page"> 
+<span class="menu-text">Final Report</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./interactive-viz.html"> 
+<span class="menu-text">Interactive Visualizations</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/lijack032/JSC370-Project" target="_blank"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#method" id="toc-method" class="nav-link" data-scroll-target="#method">Method</a>
+  <ul class="collapse">
+  <li><a href="#data-acquisition" id="toc-data-acquisition" class="nav-link" data-scroll-target="#data-acquisition">Data Acquisition</a></li>
+  <li><a href="#the-final-merged-dataset-combines-daily-financial-indicators-with-lower-frequency-macroeconomic-variables-and-spans-multiple-decades-of-u.s.-economic-history-including-expansions-recessions-financial-crises-inflationary-periods-and-monetary-tightening-cycles." id="toc-the-final-merged-dataset-combines-daily-financial-indicators-with-lower-frequency-macroeconomic-variables-and-spans-multiple-decades-of-u.s.-economic-history-including-expansions-recessions-financial-crises-inflationary-periods-and-monetary-tightening-cycles." class="nav-link" data-scroll-target="#the-final-merged-dataset-combines-daily-financial-indicators-with-lower-frequency-macroeconomic-variables-and-spans-multiple-decades-of-u.s.-economic-history-including-expansions-recessions-financial-crises-inflationary-periods-and-monetary-tightening-cycles.">The final merged dataset combines daily financial indicators with lower-frequency macroeconomic variables and spans multiple decades of U.S. economic history, including expansions, recessions, financial crises, inflationary periods, and monetary tightening cycles.</a></li>
+  <li><a href="#data-cleaning-and-wrangling" id="toc-data-cleaning-and-wrangling" class="nav-link" data-scroll-target="#data-cleaning-and-wrangling">Data Cleaning and Wrangling</a></li>
+  <li><a href="#feature-engineering" id="toc-feature-engineering" class="nav-link" data-scroll-target="#feature-engineering">Feature Engineering</a></li>
+  <li><a href="#exploratory-data-analysis" id="toc-exploratory-data-analysis" class="nav-link" data-scroll-target="#exploratory-data-analysis">Exploratory Data Analysis</a></li>
+  <li><a href="#statistical-tests-and-baseline-analysis" id="toc-statistical-tests-and-baseline-analysis" class="nav-link" data-scroll-target="#statistical-tests-and-baseline-analysis">Statistical Tests and Baseline Analysis</a></li>
+  <li><a href="#predictive-modeling" id="toc-predictive-modeling" class="nav-link" data-scroll-target="#predictive-modeling">Predictive Modeling</a>
+  <ul class="collapse">
+  <li><a href="#tier-1-benchmark-models" id="toc-tier-1-benchmark-models" class="nav-link" data-scroll-target="#tier-1-benchmark-models">Tier 1: Benchmark Models</a></li>
+  <li><a href="#tier-2-regularized-linear-models" id="toc-tier-2-regularized-linear-models" class="nav-link" data-scroll-target="#tier-2-regularized-linear-models">Tier 2: Regularized Linear Models</a></li>
+  <li><a href="#tier-3-machine-learning-models" id="toc-tier-3-machine-learning-models" class="nav-link" data-scroll-target="#tier-3-machine-learning-models">Tier 3: Machine Learning Models</a></li>
+  </ul></li>
+  <li><a href="#hyperparameter-tuning" id="toc-hyperparameter-tuning" class="nav-link" data-scroll-target="#hyperparameter-tuning">Hyperparameter Tuning</a></li>
+  <li><a href="#training-validation-and-testing-procedure" id="toc-training-validation-and-testing-procedure" class="nav-link" data-scroll-target="#training-validation-and-testing-procedure">Training, Validation, and Testing Procedure</a></li>
+  <li><a href="#evaluation-metrics" id="toc-evaluation-metrics" class="nav-link" data-scroll-target="#evaluation-metrics">Evaluation Metrics</a></li>
+  <li><a href="#training-validation-and-testing-procedure-1" id="toc-training-validation-and-testing-procedure-1" class="nav-link" data-scroll-target="#training-validation-and-testing-procedure-1">Training, Validation, and Testing Procedure</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a>
+  <ul class="collapse">
+  <li><a href="#dataset-and-split-summary" id="toc-dataset-and-split-summary" class="nav-link" data-scroll-target="#dataset-and-split-summary">Dataset and Split Summary</a></li>
+  <li><a href="#model-performance-tables" id="toc-model-performance-tables" class="nav-link" data-scroll-target="#model-performance-tables">Model Performance Tables</a></li>
+  <li><a href="#hyperparameter-tuning-results" id="toc-hyperparameter-tuning-results" class="nav-link" data-scroll-target="#hyperparameter-tuning-results">Hyperparameter Tuning Results</a></li>
+  <li><a href="#statistical-comparison-across-horizons" id="toc-statistical-comparison-across-horizons" class="nav-link" data-scroll-target="#statistical-comparison-across-horizons">Statistical Comparison Across Horizons</a></li>
+  <li><a href="#regression-performance" id="toc-regression-performance" class="nav-link" data-scroll-target="#regression-performance">Regression Performance</a>
+  <ul class="collapse">
+  <li><a href="#best-out-of-sample-r²-by-horizon" id="toc-best-out-of-sample-r²-by-horizon" class="nav-link" data-scroll-target="#best-out-of-sample-r²-by-horizon">Best Out-of-Sample R² by Horizon</a></li>
+  <li><a href="#best-roc-auc-by-horizon" id="toc-best-roc-auc-by-horizon" class="nav-link" data-scroll-target="#best-roc-auc-by-horizon">Best ROC-AUC by Horizon</a></li>
+  <li><a href="#regression-model-comparison-heatmap" id="toc-regression-model-comparison-heatmap" class="nav-link" data-scroll-target="#regression-model-comparison-heatmap">Regression Model Comparison Heatmap</a></li>
+  <li><a href="#classification-model-comparison-heatmap" id="toc-classification-model-comparison-heatmap" class="nav-link" data-scroll-target="#classification-model-comparison-heatmap">Classification Model Comparison Heatmap</a></li>
+  </ul></li>
+  <li><a href="#prediction-diagnostics" id="toc-prediction-diagnostics" class="nav-link" data-scroll-target="#prediction-diagnostics">Prediction Diagnostics</a>
+  <ul class="collapse">
+  <li><a href="#actual-vs-predicted-returns" id="toc-actual-vs-predicted-returns" class="nav-link" data-scroll-target="#actual-vs-predicted-returns">Actual vs Predicted Returns</a></li>
+  <li><a href="#roc-curve-for-best-classifier" id="toc-roc-curve-for-best-classifier" class="nav-link" data-scroll-target="#roc-curve-for-best-classifier">ROC Curve for Best Classifier</a></li>
+  </ul></li>
+  <li><a href="#feature-importance-and-model-interpretation" id="toc-feature-importance-and-model-interpretation" class="nav-link" data-scroll-target="#feature-importance-and-model-interpretation">Feature Importance and Model Interpretation</a></li>
+  </ul></li>
+  <li><a href="#conclusions-and-summary" id="toc-conclusions-and-summary" class="nav-link" data-scroll-target="#conclusions-and-summary">Conclusions and Summary</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="report.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">JSC370 Final Report</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><a href="https://github.com/lijack032/JSC370-Project">GitHub Repository</a></p>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Financial markets are shaped by a combination of macroeconomic conditions, investor expectations, and changing risk sentiment. Researchers, policymakers, and investors have long been interested in whether publicly observable economic and financial indicators contain useful information about future stock market performance. Variables such as interest rates, inflation, unemployment, credit spreads, commodity prices, and market volatility may reflect underlying economic strength or financial stress, and therefore may help explain movements in equity markets.</p>
+<p>At the same time, predicting <strong>daily stock returns</strong> remains one of the most difficult tasks in empirical finance. Stock prices respond rapidly to new information, investor behavior, and unexpected shocks, which often makes short-horizon returns highly noisy and difficult to forecast. While some macro-financial indicators may exhibit statistical relationships with returns, it is less clear whether these relationships are strong enough to generate meaningful out-of-sample predictive performance.</p>
+<p>This project investigates whether macro-financial indicators can be used to predict future daily returns of major U.S. stock indices. The analysis focuses on the <strong>S&amp;P 500</strong>, a broad benchmark of the U.S. equity market, and uses a historical dataset combining market-based indicators from Yahoo Finance and macroeconomic variables from the Federal Reserve Economic Data (FRED) API. The dataset spans multiple economic regimes, including expansions, recessions, financial crises, and periods of elevated inflation and monetary tightening.</p>
+<p>The central research question is:</p>
+<p><strong>Can macro-financial indicators meaningfully predict next-day stock market returns, and do machine learning methods improve predictive accuracy relative to traditional linear models?</strong></p>
+<p>This question extends the earlier midterm analysis, which found that some lagged variables—particularly market volatility, Treasury yields, and credit spreads—had statistically significant but economically small relationships with next-day returns. Those findings suggest that predictive signals may exist, but simple linear models explain only a very small share of daily return variation. This raises the possibility that the relevant relationships may be nonlinear, state-dependent, or only detectable when many variables are combined using more flexible methods.</p>
+<p>To address this question, the final project will compare multiple predictive approaches. First, benchmark models such as historical-average forecasts and ordinary least squares regression will be estimated. Second, regularized linear models such as Ridge and Lasso regression will be used to improve feature selection and reduce overfitting. Third, machine learning models such as Random Forest and XGBoost will be used to capture nonlinear interactions and threshold effects. In addition to predicting the numerical value of next-day returns, a secondary analysis will classify whether the market increases or decreases on the following day.</p>
+<p>The contribution of this project is therefore twofold. Substantively, it evaluates whether commonly observed macro-financial indicators contain useful short-term predictive information for equity markets. Methodologically, it compares classical statistical models with modern machine learning approaches using a time-series forecasting framework. The results will help determine whether daily stock returns can be meaningfully forecast using publicly available macro-financial data, or whether such returns remain largely unpredictable even with more advanced predictive models.</p>
+</section>
+<section id="method" class="level1">
+<h1>Method</h1>
+<section id="data-acquisition" class="level2">
+<h2 class="anchored" data-anchor-id="data-acquisition">Data Acquisition</h2>
+<p>The dataset was constructed from two public data sources: <strong>Yahoo Finance</strong> and <strong>Federal Reserve Economic Data (FRED)</strong>. Daily financial market data were collected from the <strong>Yahoo Finance chart API</strong> using a custom Python request function. For each ticker symbol, the function sent a request to the Yahoo Finance chart endpoint with a <strong>start timestamp</strong>, <strong>end timestamp</strong>, <strong>daily interval</strong>, and <strong>adjusted-close option</strong>. The JSON response contained timestamped quote data, including <strong>open</strong>, <strong>high</strong>, <strong>low</strong>, <strong>close</strong>, <strong>adjusted close</strong>, and <strong>volume</strong>. After converting the Unix timestamps into calendar dates, the analysis retained the daily <strong>closing-price series</strong> for each financial indicator.</p>
+<p>The Yahoo Finance series included the <strong>S&amp;P 500 Index</strong>, <strong>Dow Jones Industrial Average</strong>, <strong>10-year U.S. Treasury yield</strong>, <strong>1-year U.S. Treasury yield</strong>, <strong>U.S. Dollar Index</strong>, <strong>CBOE Volatility Index (VIX)</strong>, and <strong>crude oil futures</strong>. These variables were selected to capture equity market performance, interest-rate conditions, currency strength, market uncertainty, and commodity price movements.</p>
+<p>Macroeconomic data were collected from the <strong>FRED API</strong> using a custom function that requested observations for each FRED series ID. The JSON output from FRED was converted into a pandas data frame with two main columns: <strong>date</strong> and <strong>value</strong>. The FRED series included the <strong>Federal Funds Rate</strong>, <strong>Consumer Price Index (CPI)</strong>, <strong>unemployment rate</strong>, <strong>industrial production index</strong>, <strong>University of Michigan Consumer Sentiment Index</strong>, <strong>Moody’s BAA corporate bond yield</strong>, and the <strong>10-year Treasury yield</strong>. In addition, a <strong>credit spread</strong> variable was constructed as the difference between Moody’s BAA corporate bond yield and the 10-year Treasury yield, representing perceived credit risk and financial stress.</p>
+</section>
+<section id="the-final-merged-dataset-combines-daily-financial-indicators-with-lower-frequency-macroeconomic-variables-and-spans-multiple-decades-of-u.s.-economic-history-including-expansions-recessions-financial-crises-inflationary-periods-and-monetary-tightening-cycles." class="level2">
+<h2 class="anchored" data-anchor-id="the-final-merged-dataset-combines-daily-financial-indicators-with-lower-frequency-macroeconomic-variables-and-spans-multiple-decades-of-u.s.-economic-history-including-expansions-recessions-financial-crises-inflationary-periods-and-monetary-tightening-cycles.">The final merged dataset combines daily financial indicators with lower-frequency macroeconomic variables and spans multiple decades of U.S. economic history, including expansions, recessions, financial crises, inflationary periods, and monetary tightening cycles.</h2>
+</section>
+<section id="data-cleaning-and-wrangling" class="level2">
+<h2 class="anchored" data-anchor-id="data-cleaning-and-wrangling">Data Cleaning and Wrangling</h2>
+<p>Raw market data from Yahoo Finance were converted into structured pandas data frames with standardized date columns and closing-price variables. Only the relevant closing-price series were retained for analysis. All dates were converted to Python datetime format to ensure consistency across sources.</p>
+<p>Macroeconomic series from FRED are reported at monthly or lower frequencies, while market data are observed daily. To align these sources, lower-frequency macroeconomic variables were resampled to daily frequency using forward-fill interpolation, allowing the most recently available macroeconomic observation to remain in effect until a new release date.</p>
+<p>After the individual series were cleaned and renamed, all variables were merged by date using the date index. The merged dataset was then restricted to rows where all selected variables were available. Remaining missing values were removed after the merge and again after feature engineering, because lagged variables, rolling means, rolling volatility, and future return targets naturally create missing observations at the beginning and end of the sample. This process ensured that all models were trained on complete observations with the same predictor set.</p>
+<p>Daily stock returns were computed using percentage changes in index closing prices. The primary dependent variable is the <strong>next-period S&amp;P 500 return</strong>, while secondary targets include Dow Jones returns and binary direction indicators equal to one when the future return is positive and zero otherwise.</p>
+<p>To avoid look-ahead bias, predictor variables were lagged so that only information available at time (t) is used to predict returns at time (t+1), (t+5), or (t+20).</p>
+<hr>
+</section>
+<section id="feature-engineering" class="level2">
+<h2 class="anchored" data-anchor-id="feature-engineering">Feature Engineering</h2>
+<p>To improve predictive performance beyond the original midterm specification, the final project extends the dataset through feature engineering. In addition to one-day lagged predictors, the following features were constructed:</p>
+<ul>
+<li>Multiple lag variables (1-day, 3-day, 5-day, and 10-day lags)</li>
+<li>Rolling means over 5, 10, and 20 trading days</li>
+<li>Rolling volatility measures of recent stock returns</li>
+<li>Momentum features based on cumulative past returns</li>
+<li>First differences and short-run changes in yields, oil prices, volatility, and spreads</li>
+<li>Yield-curve spread variables (10-year minus 1-year Treasury yield)</li>
+</ul>
+<p>These engineered variables are intended to capture delayed reactions, short-term trends, volatility regimes, and changing macro-financial conditions.</p>
+<hr>
+</section>
+<section id="exploratory-data-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="exploratory-data-analysis">Exploratory Data Analysis</h2>
+<p>Initial data exploration was conducted using <strong>pandas</strong>, <strong>matplotlib</strong>, <strong>seaborn</strong>, and <strong>plotnine (ggplot for Python)</strong>. Publication-quality figures were created to summarize historical patterns and motivate the predictive modeling stage.</p>
+<p>Exploratory visualizations included:</p>
+<ul>
+<li>Time-series plots of major stock indices</li>
+<li>Time-series plots of the VIX and other financial indicators</li>
+<li>Histograms of daily stock returns</li>
+<li>Scatterplots of returns against macro-financial predictors</li>
+<li>Correlation heatmaps across all variables</li>
+<li>Tables summarizing periods of elevated volatility</li>
+</ul>
+<p>These analyses were used to assess distributional shape, outliers, temporal trends, and potential predictor relationships.</p>
+<p>Here is a sample of the data distribution of finalized daily S&amp;P 500 returns:</p>
+<div id="36290a2e" class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-12-output-1.png" width="758" height="470" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="statistical-tests-and-baseline-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="statistical-tests-and-baseline-analysis">Statistical Tests and Baseline Analysis</h2>
+<p>Several classical statistical methods were used in the midterm stage and retained as baseline evidence for the final project.</p>
+<p>First, <strong>ordinary least squares (OLS)</strong> regression was used to estimate the linear relationship between lagged macro-financial indicators and next-day S&amp;P 500 returns.</p>
+<p>Second, <strong>two-sample t-tests</strong> were used to compare mean stock returns during high-volatility periods (e.g., VIX &gt; 40) versus normal market conditions.</p>
+<p>Third, <strong>Pearson correlation analysis</strong> was used to examine pairwise linear relationships between lagged predictors and future returns.</p>
+<p>These methods provide interpretable benchmarks and help assess whether any predictive signal exists prior to more flexible machine learning models.</p>
+<hr>
+</section>
+<section id="predictive-modeling" class="level2">
+<h2 class="anchored" data-anchor-id="predictive-modeling">Predictive Modeling</h2>
+<p>The primary objective of the final project is forecasting future stock returns using supervised learning methods. Two prediction tasks are considered:</p>
+<ol type="1">
+<li><strong>Regression:</strong> predict numerical future returns<br>
+</li>
+<li><strong>Classification:</strong> predict whether future returns are positive or negative</li>
+</ol>
+<p>Models are estimated for three forecasting horizons:</p>
+<ul>
+<li>1 trading day ahead</li>
+<li>5 trading days ahead</li>
+<li>20 trading days ahead</li>
+</ul>
+<section id="tier-1-benchmark-models" class="level3">
+<h3 class="anchored" data-anchor-id="tier-1-benchmark-models">Tier 1: Benchmark Models</h3>
+<ul>
+<li>Historical mean return forecast</li>
+<li>Majority-class classifier</li>
+<li>Ordinary Least Squares (OLS)</li>
+</ul>
+</section>
+<section id="tier-2-regularized-linear-models" class="level3">
+<h3 class="anchored" data-anchor-id="tier-2-regularized-linear-models">Tier 2: Regularized Linear Models</h3>
+<ul>
+<li>Ridge Regression</li>
+<li>Lasso Regression</li>
+<li>Logistic Regression</li>
+</ul>
+</section>
+<section id="tier-3-machine-learning-models" class="level3">
+<h3 class="anchored" data-anchor-id="tier-3-machine-learning-models">Tier 3: Machine Learning Models</h3>
+<ul>
+<li>Random Forest</li>
+<li>XGBoost (if computationally feasible)</li>
+</ul>
+<p>These models were selected to compare traditional linear approaches with nonlinear tree-based methods capable of capturing interactions and threshold effects.</p>
+<hr>
+</section>
+</section>
+<section id="hyperparameter-tuning" class="level2">
+<h2 class="anchored" data-anchor-id="hyperparameter-tuning">Hyperparameter Tuning</h2>
+<p>For models with tunable hyperparameters, optimization is performed using <strong>Optuna</strong>. Separate objective functions are defined for each model type.</p>
+<ul>
+<li>For regression models, validation-set <strong>RMSE</strong> is minimized.</li>
+<li>For classification models, validation-set <strong>ROC-AUC</strong> is maximized.</li>
+</ul>
+<p>Optuna searches across predefined parameter ranges using parallel trials. After tuning, the best model specification is refit on the combined training and validation data.</p>
+<hr>
+</section>
+<section id="training-validation-and-testing-procedure" class="level2">
+<h2 class="anchored" data-anchor-id="training-validation-and-testing-procedure">Training, Validation, and Testing Procedure</h2>
+<p>Because the dataset is time-series data, observations were <strong>not randomly shuffled</strong>. Random splitting would introduce look-ahead bias by allowing future information to enter the training set.</p>
+<p>Instead, the sample was divided chronologically:</p>
+<ul>
+<li><strong>Training set (70%)</strong>: used to estimate models<br>
+</li>
+<li><strong>Validation set (15%)</strong>: used for hyperparameter tuning and model selection<br>
+</li>
+<li><strong>Test set (15%)</strong>: reserved for final out-of-sample evaluation</li>
+</ul>
+<p>This framework more accurately reflects real forecasting conditions, where only past information is available when making predictions.</p>
+<hr>
+</section>
+<section id="evaluation-metrics" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation-metrics">Evaluation Metrics</h2>
+<p>For regression models, forecasting performance is evaluated using:</p>
+<ul>
+<li>Root Mean Squared Error (<strong>RMSE</strong>)</li>
+<li>Mean Absolute Error (<strong>MAE</strong>)</li>
+<li>Out-of-sample (R^2)</li>
+</ul>
+<p>For classification models, predictive performance is evaluated using:</p>
+<ul>
+<li>Accuracy</li>
+<li>Precision / Recall (if relevant)</li>
+<li>Receiver Operating Characteristic Area Under Curve (<strong>ROC-AUC</strong>)</li>
+</ul>
+<p>These metrics allow comparison across models and forecast horizons.</p>
+<hr>
+</section>
+<section id="training-validation-and-testing-procedure-1" class="level2">
+<h2 class="anchored" data-anchor-id="training-validation-and-testing-procedure-1">Training, Validation, and Testing Procedure</h2>
+<p>Because the data are time-series observations, the dataset should <strong>not</strong> be split randomly. Random shuffling would mix future observations into the training set and create look-ahead bias, leading to overly optimistic model performance. Instead, the data should be split chronologically so that models are always trained on past information and evaluated on future periods.</p>
+<p>The engineered dataset <code>model_df</code> is therefore divided into training, validation, and test sets based on time order:</p>
+<ul>
+<li><strong>Training set:</strong> used to estimate model parameters<br>
+</li>
+<li><strong>Validation set:</strong> used for model tuning and model selection<br>
+</li>
+<li><strong>Test set:</strong> held out until the end for final out-of-sample evaluation</li>
+</ul>
+<p>This setup more closely reflects the real forecasting problem faced by investors, where only historical information is available when making predictions.</p>
+<div id="6aaa5280" class="cell" data-execution_count="15">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Split</th>
+<th data-quarto-table-cell-role="th">Rows</th>
+<th data-quarto-table-cell-role="th">Features</th>
+<th data-quarto-table-cell-role="th">Start Date</th>
+<th data-quarto-table-cell-role="th">End Date</th>
+<th data-quarto-table-cell-role="th">Share of Sample</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Training</td>
+<td>4391</td>
+<td>99</td>
+<td>2000-09-21</td>
+<td>2018-04-05</td>
+<td>70.0%</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Validation</td>
+<td>941</td>
+<td>99</td>
+<td>2018-04-06</td>
+<td>2021-12-29</td>
+<td>15.0%</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Test</td>
+<td>941</td>
+<td>99</td>
+<td>2021-12-30</td>
+<td>2025-09-30</td>
+<td>15.0%</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="results" class="level1">
+<h1>Results</h1>
+<p>This section presents the final out-of-sample results for both prediction tasks: forecasting the numerical value of future S&amp;P 500 returns and classifying whether future returns are positive or negative. The models are evaluated across 1-day, 5-day, and 20-day horizons. Regression performance is assessed using RMSE, MAE, and out-of-sample R², while classification performance is assessed using accuracy and ROC-AUC.</p>
+<section id="dataset-and-split-summary" class="level2">
+<h2 class="anchored" data-anchor-id="dataset-and-split-summary">Dataset and Split Summary</h2>
+<div id="8ac1457b" class="cell" data-execution_count="23">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Item</th>
+<th data-quarto-table-cell-role="th">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Full sample start date</td>
+<td>2000-09-21</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Full sample end date</td>
+<td>2025-09-30</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Number of observations after cleaning</td>
+<td>6273</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Number of predictor features</td>
+<td>99</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Training observations</td>
+<td>4391</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>Validation observations</td>
+<td>941</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>Test observations</td>
+<td>941</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>Forecast horizons</td>
+<td>1-day, 5-day, 20-day</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 1. Dataset and Sample Split Summary</strong></p>
+<p>Table 1 summarizes the final modeling dataset after merging market and macroeconomic indicators, creating lagged and rolling features, and removing missing observations. The sample is split chronologically into training, validation, and test periods, which avoids look-ahead bias and better reflects the real forecasting setting. The number of predictor features also shows that the final project goes beyond the original variables by adding engineered measures of lagged conditions, momentum, volatility, and yield spreads.</p>
+</section>
+<section id="model-performance-tables" class="level2">
+<h2 class="anchored" data-anchor-id="model-performance-tables">Model Performance Tables</h2>
+<div id="3961d117" class="cell" data-execution_count="24">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Horizon</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">RMSE</th>
+<th data-quarto-table-cell-role="th">MAE</th>
+<th data-quarto-table-cell-role="th">R2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>Random Forest</td>
+<td>0.01140</td>
+<td>0.00809</td>
+<td>0.00384</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>XGBoost</td>
+<td>0.01142</td>
+<td>0.00806</td>
+<td>-0.00013</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>Lasso</td>
+<td>0.01142</td>
+<td>0.00806</td>
+<td>-0.00017</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>Mean Benchmark</td>
+<td>0.01142</td>
+<td>0.00807</td>
+<td>-0.00045</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1</td>
+<td>Ridge</td>
+<td>0.01201</td>
+<td>0.00896</td>
+<td>-0.10666</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>1</td>
+<td>OLS</td>
+<td>0.01268</td>
+<td>0.00968</td>
+<td>-0.23263</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>5</td>
+<td>XGBoost</td>
+<td>0.02427</td>
+<td>0.01813</td>
+<td>-0.00083</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>5</td>
+<td>Lasso</td>
+<td>0.02427</td>
+<td>0.01813</td>
+<td>-0.00091</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>5</td>
+<td>Mean Benchmark</td>
+<td>0.02429</td>
+<td>0.01818</td>
+<td>-0.00234</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>5</td>
+<td>Random Forest</td>
+<td>0.02640</td>
+<td>0.02054</td>
+<td>-0.18411</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>5</td>
+<td>Ridge</td>
+<td>0.02782</td>
+<td>0.02279</td>
+<td>-0.31479</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">11</th>
+<td>5</td>
+<td>OLS</td>
+<td>0.03058</td>
+<td>0.02504</td>
+<td>-0.58911</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">12</th>
+<td>20</td>
+<td>Mean Benchmark</td>
+<td>0.04529</td>
+<td>0.03717</td>
+<td>-0.01352</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">13</th>
+<td>20</td>
+<td>Lasso</td>
+<td>0.04729</td>
+<td>0.03987</td>
+<td>-0.10492</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">14</th>
+<td>20</td>
+<td>Random Forest</td>
+<td>0.05399</td>
+<td>0.04536</td>
+<td>-0.44017</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">15</th>
+<td>20</td>
+<td>OLS</td>
+<td>0.06656</td>
+<td>0.05484</td>
+<td>-1.18889</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">16</th>
+<td>20</td>
+<td>Ridge</td>
+<td>0.06810</td>
+<td>0.05933</td>
+<td>-1.29135</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">17</th>
+<td>20</td>
+<td>XGBoost</td>
+<td>0.07015</td>
+<td>0.06053</td>
+<td>-1.43134</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 2. Regression Performance Summary</strong></p>
+<p>Table 2 shows that the regression models had weak out-of-sample performance across all three forecast horizons. At the 1-day horizon, Random Forest performed best, with an RMSE of 0.01140 and a small positive <span class="math inline">\(R^2\)</span> of 0.00384. This means it slightly improved over the mean benchmark, whose <span class="math inline">\(R^2\)</span> was -0.00045, but the improvement was extremely small. XGBoost and Lasso were very close to the mean benchmark, with <span class="math inline">\(R^2\)</span> values of -0.00013 and -0.00017, respectively. At the 5-day horizon, XGBoost performed best with an <span class="math inline">\(R^2\)</span> of -0.00083, followed closely by Lasso at -0.00091. These values are still slightly negative, showing almost no meaningful predictive gain over the benchmark. At the 20-day horizon, the mean benchmark performed best, with an <span class="math inline">\(R^2\)</span> of -0.01352, while all fitted models performed worse. XGBoost performed especially poorly at this horizon, with an <span class="math inline">\(R^2\)</span> of -1.43134. Overall, the results suggest that the engineered macro-financial indicators provide very limited ability to predict the exact size of future S&amp;P 500 returns. The only positive <span class="math inline">\(R^2\)</span> appears for the 1-day Random Forest model, but the value is so close to zero that it should be interpreted as a very weak improvement rather than strong predictive power. In relation to the research question, this table suggests that machine learning models provide little improvement for predicting exact return size, even when many macro-financial predictors are included.</p>
+<div id="c67d797e" class="cell" data-execution_count="25">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Horizon</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">Accuracy</th>
+<th data-quarto-table-cell-role="th">ROC_AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>Logistic Regression</td>
+<td>0.54304</td>
+<td>0.53035</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>1</td>
+<td>XGBoost</td>
+<td>0.53241</td>
+<td>0.50967</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>1</td>
+<td>Random Forest</td>
+<td>0.48778</td>
+<td>0.49275</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>Majority Class Benchmark</td>
+<td>0.52604</td>
+<td>Not applicable</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5</td>
+<td>Logistic Regression</td>
+<td>0.46546</td>
+<td>0.49491</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>5</td>
+<td>XGBoost</td>
+<td>0.50372</td>
+<td>0.4697</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>5</td>
+<td>Random Forest</td>
+<td>0.41339</td>
+<td>0.42498</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>5</td>
+<td>Majority Class Benchmark</td>
+<td>0.58342</td>
+<td>Not applicable</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>20</td>
+<td>Logistic Regression</td>
+<td>0.39320</td>
+<td>0.57166</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>20</td>
+<td>XGBoost</td>
+<td>0.47078</td>
+<td>0.5225</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>20</td>
+<td>Random Forest</td>
+<td>0.62380</td>
+<td>0.5113</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">11</th>
+<td>20</td>
+<td>Majority Class Benchmark</td>
+<td>0.64081</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 3. Classification Performance Summary</strong></p>
+<p>Table 3 shows that the classification models had modest performance overall, with the strongest results coming from Logistic Regression. At the 1-day horizon, Logistic Regression performed best, with an accuracy of 0.54304 and a ROC-AUC of 0.53035. This is slightly better than random classification, but the improvement is small. XGBoost also had a reasonable 1-day accuracy of 0.53241, but its ROC-AUC was only 0.50967, suggesting weak ranking ability between positive and non-positive return days.</p>
+<p>At the 5-day horizon, classification performance was weaker. Logistic Regression had the highest ROC-AUC among the fitted models, but its value was 0.49491, which is slightly below the random benchmark of 0.50. XGBoost and Random Forest also performed below 0.50, with ROC-AUC values of 0.46970 and 0.42498. The majority-class benchmark had the highest accuracy at 0.58342, but this does not necessarily mean it was a better predictive model. It mainly reflects the fact that one class was more common in the 5-day test set.</p>
+<p>At the 20-day horizon, Logistic Regression again performed best by ROC-AUC, reaching 0.57166. This is the strongest classification result in the table and suggests some ability to distinguish positive from non-positive 20-day returns. However, its accuracy was only 0.39320, while the majority-class benchmark had an accuracy of 0.64081. This shows why ROC-AUC is more useful than accuracy here: accuracy is strongly affected by class imbalance, while ROC-AUC evaluates the model’s ranking ability across different thresholds. Overall, the classification results suggest that directional prediction is still weak, but the 20-day Logistic Regression model shows the clearest predictive signal.</p>
+<p>In relation to the research question, these results suggest that direction classification is somewhat more promising than return-size prediction, but the improvement over random classification is still modest.</p>
+<div id="f6267a49" class="cell" data-execution_count="26">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Horizon</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">RMSE</th>
+<th data-quarto-table-cell-role="th">MAE</th>
+<th data-quarto-table-cell-role="th">R2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>Random Forest</td>
+<td>0.01140</td>
+<td>0.00809</td>
+<td>0.00384</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>5</td>
+<td>XGBoost</td>
+<td>0.02427</td>
+<td>0.01813</td>
+<td>-0.00083</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>20</td>
+<td>Mean Benchmark</td>
+<td>0.04529</td>
+<td>0.03717</td>
+<td>-0.01352</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 4. Best Regression Model by Forecast Horizon</strong></p>
+<div id="b9209942" class="cell" data-execution_count="27">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Horizon</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">Accuracy</th>
+<th data-quarto-table-cell-role="th">ROC_AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>Logistic Regression</td>
+<td>0.54304</td>
+<td>0.53035</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>5</td>
+<td>Logistic Regression</td>
+<td>0.46546</td>
+<td>0.49491</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>20</td>
+<td>Logistic Regression</td>
+<td>0.39320</td>
+<td>0.57166</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 5. Best Classification Model by Forecast Horizon</strong></p>
+<p>Tables 4 and 5 summarize the best-performing model at each forecast horizon. For regression, the best model changes across horizons. Random Forest performs best for the 1-day horizon, with an RMSE of 0.01140 and a small positive <span class="math inline">\(R^2\)</span> of 0.00384. XGBoost performs best for the 5-day horizon, with an RMSE of 0.02427 and an <span class="math inline">\(R^2\)</span> of -0.00083. At the 20-day horizon, the mean benchmark performs best, with an RMSE of 0.04529 and an <span class="math inline">\(R^2\)</span> of -0.01352. This pattern shows that no single regression model consistently dominates across all horizons. More importantly, even the best regression results are very close to zero or negative, meaning that the models provide little meaningful improvement for predicting exact return size.</p>
+<p>For classification, Logistic Regression is the best model across all three horizons based on ROC-AUC. Its ROC-AUC is 0.53035 at the 1-day horizon, 0.49491 at the 5-day horizon, and 0.57166 at the 20-day horizon. The 5-day value is slightly below 0.50, indicating that even the best model at this horizon performs no better than random classification. The strongest result appears at the 20-day horizon, where Logistic Regression reaches a ROC-AUC of 0.57166. Overall, these tables show that model performance depends on both the prediction task and forecast horizon. The clearest predictive signal appears in 20-day direction classification, while exact return prediction remains weak.</p>
+</section>
+<section id="hyperparameter-tuning-results" class="level2">
+<h2 class="anchored" data-anchor-id="hyperparameter-tuning-results">Hyperparameter Tuning Results</h2>
+<div id="c09a182c" class="cell" data-execution_count="30">
+<div class="cell-output cell-output-display" data-execution_count="25">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Horizon</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">model__alpha</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>Ridge</td>
+<td>99.876134</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>5</td>
+<td>Ridge</td>
+<td>99.316107</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>20</td>
+<td>Ridge</td>
+<td>89.647638</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 6. Ridge Regression Hyperparameters</strong></p>
+<div id="9336879d" class="cell" data-execution_count="31">
+<div class="cell-output cell-output-display" data-execution_count="26">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Horizon</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">n_estimators</th>
+<th data-quarto-table-cell-role="th">max_depth</th>
+<th data-quarto-table-cell-role="th">min_samples_split</th>
+<th data-quarto-table-cell-role="th">min_samples_leaf</th>
+<th data-quarto-table-cell-role="th">max_features</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>Regressor</td>
+<td>282</td>
+<td>2</td>
+<td>28</td>
+<td>6</td>
+<td>sqrt</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>5</td>
+<td>Regressor</td>
+<td>348</td>
+<td>7</td>
+<td>30</td>
+<td>13</td>
+<td>log2</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>20</td>
+<td>Regressor</td>
+<td>249</td>
+<td>11</td>
+<td>30</td>
+<td>20</td>
+<td>sqrt</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>Classifier</td>
+<td>223</td>
+<td>13</td>
+<td>14</td>
+<td>17</td>
+<td>None</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5</td>
+<td>Classifier</td>
+<td>106</td>
+<td>20</td>
+<td>3</td>
+<td>1</td>
+<td>log2</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>20</td>
+<td>Classifier</td>
+<td>220</td>
+<td>10</td>
+<td>10</td>
+<td>23</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 7. Random Forest Hyperparameters</strong></p>
+<div id="70fdd025" class="cell" data-execution_count="32">
+<div class="cell-output cell-output-display" data-execution_count="27">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Horizon</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">n_estimators</th>
+<th data-quarto-table-cell-role="th">learning_rate</th>
+<th data-quarto-table-cell-role="th">max_depth</th>
+<th data-quarto-table-cell-role="th">subsample</th>
+<th data-quarto-table-cell-role="th">min_child_weight</th>
+<th data-quarto-table-cell-role="th">colsample_bytree</th>
+<th data-quarto-table-cell-role="th">gamma</th>
+<th data-quarto-table-cell-role="th">reg_alpha</th>
+<th data-quarto-table-cell-role="th">reg_lambda</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>Regressor</td>
+<td>488</td>
+<td>0.027396</td>
+<td>2</td>
+<td>0.696484</td>
+<td>5</td>
+<td>0.760250</td>
+<td>1.850185</td>
+<td>1.823289e-05</td>
+<td>1.756291e-02</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>5</td>
+<td>Regressor</td>
+<td>705</td>
+<td>0.008817</td>
+<td>4</td>
+<td>0.601607</td>
+<td>10</td>
+<td>0.692863</td>
+<td>1.912055</td>
+<td>2.809608e-07</td>
+<td>6.117732e+00</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>20</td>
+<td>Regressor</td>
+<td>508</td>
+<td>0.031536</td>
+<td>7</td>
+<td>0.613357</td>
+<td>4</td>
+<td>0.790799</td>
+<td>0.005721</td>
+<td>1.408670e-05</td>
+<td>1.162668e-08</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>1</td>
+<td>Classifier</td>
+<td>190</td>
+<td>0.017509</td>
+<td>2</td>
+<td>0.708225</td>
+<td>9</td>
+<td>0.709354</td>
+<td>3.021249</td>
+<td>1.540688e-05</td>
+<td>1.775945e-08</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5</td>
+<td>Classifier</td>
+<td>362</td>
+<td>0.036475</td>
+<td>8</td>
+<td>0.854827</td>
+<td>8</td>
+<td>0.878968</td>
+<td>3.667678</td>
+<td>9.757897e-04</td>
+<td>2.319192e+00</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>20</td>
+<td>Classifier</td>
+<td>246</td>
+<td>0.046395</td>
+<td>7</td>
+<td>0.994734</td>
+<td>1</td>
+<td>0.739170</td>
+<td>4.706242</td>
+<td>5.282959e-06</td>
+<td>7.411897e-06</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 8. XGBoost Hyperparameters</strong></p>
+<p>Tables 6 through 8 report the tuned hyperparameters selected through Optuna for the regularized and tree-based models. For Ridge regression, the selected alpha values are large across all horizons, ranging from 89.64764 to 99.87613. This suggests that the model preferred stronger regularization, likely because the engineered predictor set contains many related variables and could otherwise overfit the training data. For Random Forest, the selected settings vary across regression and classification tasks. For example, the number of trees ranges from 106 to 348, and maximum depth ranges from 2 to 20, showing that different horizons required different levels of model complexity. For XGBoost, the tuned number of estimators ranges from 190 to 705, with learning rates between 0.00882 and 0.04640. These differences show that the models were not trained using one fixed setting, but were separately optimized for each task and forecast horizon using the validation set. Overall, these tables support the reproducibility of the modeling process and show how hyperparameter tuning was used to control model complexity.</p>
+</section>
+<section id="statistical-comparison-across-horizons" class="level2">
+<h2 class="anchored" data-anchor-id="statistical-comparison-across-horizons">Statistical Comparison Across Horizons</h2>
+<div id="08f10376" class="cell" data-execution_count="33">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Test</th>
+<th data-quarto-table-cell-role="th">Outcome compared</th>
+<th data-quarto-table-cell-role="th">Test statistic</th>
+<th data-quarto-table-cell-role="th">p-value</th>
+<th data-quarto-table-cell-role="th">Significant at 5%</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Friedman test</td>
+<td>Regression R2 across horizons</td>
+<td>12.0</td>
+<td>0.00248</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 9. Friedman Test for Regression Performance Across Horizons</strong></p>
+<div id="b04dc6d6" class="cell" data-execution_count="34">
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Test</th>
+<th data-quarto-table-cell-role="th">Outcome compared</th>
+<th data-quarto-table-cell-role="th">Test statistic</th>
+<th data-quarto-table-cell-role="th">p-value</th>
+<th data-quarto-table-cell-role="th">Significant at 5%</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Friedman test</td>
+<td>Classification ROC-AUC across horizons</td>
+<td>6.0</td>
+<td>0.04979</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Table 10. Friedman Test for Classification Performance Across Horizons</strong></p>
+<p>Tables 9 and 10 test whether model performance differs systematically across the 1-day, 5-day, and 20-day forecast horizons. For regression performance, the Friedman test is statistically significant, with a test statistic of 12.00 and a p-value of 0.00248. This means there is evidence that regression performance changes across forecast horizons. This matches the earlier model results, where performance was relatively less weak at the 1-day horizon but became worse at longer horizons, especially for several fitted models at the 20-day horizon.</p>
+<p>For classification performance, the Friedman test is also statistically significant, with a test statistic of 6.00 and a p-value of 0.04979. This suggests that ROC-AUC performance also differs across horizons at the 5% level, although the result is very close to the cutoff. The classification tables show that the 20-day horizon has the strongest ROC-AUC result, especially for Logistic Regression, while the 5-day horizon performs weakest. Overall, these tests support the idea that forecast horizon matters for both regression and classification, but the classification result should be interpreted cautiously because the p-value is only slightly below 0.05.</p>
+</section>
+<section id="regression-performance" class="level2">
+<h2 class="anchored" data-anchor-id="regression-performance">Regression Performance</h2>
+<section id="best-out-of-sample-r²-by-horizon" class="level3">
+<h3 class="anchored" data-anchor-id="best-out-of-sample-r²-by-horizon">Best Out-of-Sample R² by Horizon</h3>
+<div id="55b488de" class="cell" data-execution_count="35">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-36-output-1.png" width="653" height="470" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 1. Best Out-of-Sample <span class="math inline">\(R^2\)</span> by Forecast Horizon</strong></p>
+<p>Figure 1 shows the best out-of-sample <span class="math inline">\(R^2\)</span> value at each forecast horizon. At the 1-day horizon, Random Forest performs best, with a small positive <span class="math inline">\(R^2\)</span> of 0.00384. This means it slightly improves over the mean benchmark, but the improvement is very small. At the 5-day horizon, XGBoost performs best, but its <span class="math inline">\(R^2\)</span> is still slightly negative at -0.00083, indicating almost no meaningful predictive gain. At the 20-day horizon, the mean benchmark is the best-performing approach, with an <span class="math inline">\(R^2\)</span> of -0.01352. Overall, the figure shows that exact return prediction is weakest at longer horizons and that even the best regression results are close to zero or negative. The only positive result is the 1-day Random Forest model, but its value is too small to suggest strong predictive power. This means that the predictive modeling framework does not produce strong evidence of numerical return predictability. ## Classification Performance</p>
+</section>
+<section id="best-roc-auc-by-horizon" class="level3">
+<h3 class="anchored" data-anchor-id="best-roc-auc-by-horizon">Best ROC-AUC by Horizon</h3>
+<div id="30da7a79" class="cell" data-execution_count="36">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-37-output-1.png" width="655" height="470" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 2. Best ROC-AUC by Forecast Horizon</strong></p>
+<p>Figure 2 shows that Logistic Regression achieved the highest ROC-AUC across the forecast horizons, but the results remain close to the random-classification benchmark of <span class="math inline">\(\text{ROC-AUC} = 0.50\)</span>. The best performance occurs at the 20-day horizon, with <span class="math inline">\(\text{ROC-AUC} \approx 0.57\)</span>, while the 1-day horizon reaches about <span class="math inline">\(\text{ROC-AUC} \approx 0.53\)</span> and the 5-day horizon is almost exactly <span class="math inline">\(\text{ROC-AUC} \approx 0.50\)</span>. This suggests that the model has weak predictive ability overall, although it performs slightly better when predicting longer-term market direction. This suggests that the macro-financial variables are more useful for ranking future market direction than for predicting exact return values, especially at the 20-day horizon.</p>
+</section>
+<section id="regression-model-comparison-heatmap" class="level3">
+<h3 class="anchored" data-anchor-id="regression-model-comparison-heatmap">Regression Model Comparison Heatmap</h3>
+<div id="d0dbd681" class="cell" data-execution_count="37">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-38-output-1.png" width="729" height="470" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 3. Regression Model Comparison Heatmap: Out-of-Sample <span class="math inline">\(R^2\)</span></strong></p>
+<p>Figure 3 compares the out-of-sample <span class="math inline">\(R^2\)</span> values across different regression models and forecast horizons. Overall, the results suggest that the regression models have weak explanatory power for future market returns, since the out-of-sample <span class="math inline">\(R^2\)</span> values are close to zero or negative in most cases. A negative out-of-sample <span class="math inline">\(R^2\)</span> means that the model performs worse than a simple benchmark prediction, such as using the historical average return. Although some model and horizon combinations perform slightly better than others, the differences appear small. This suggests that predicting the exact size of future returns is difficult, even when using multiple market and macroeconomic indicators.</p>
+</section>
+<section id="classification-model-comparison-heatmap" class="level3">
+<h3 class="anchored" data-anchor-id="classification-model-comparison-heatmap">Classification Model Comparison Heatmap</h3>
+<div id="c8133bcd" class="cell" data-execution_count="38">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-39-output-1.png" width="712" height="470" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 4. Classification Model Comparison Heatmap: ROC-AUC</strong></p>
+<p>Figure 4 compares the ROC-AUC performance of the classification models across the 1-day, 5-day, and 20-day forecast horizons. Overall, Logistic Regression performs the best among the three models, especially at the 20-day horizon, where it reaches the highest ROC-AUC value of <span class="math inline">\(\text{ROC-AUC} = 0.5717\)</span>. At the 1-day horizon, Logistic Regression also performs the best with <span class="math inline">\(\text{ROC-AUC} = 0.5303\)</span>, compared with XGBoost at <span class="math inline">\(\text{ROC-AUC} = 0.5097\)</span> and Random Forest at <span class="math inline">\(\text{ROC-AUC} = 0.4927\)</span>. However, all models perform poorly at the 5-day horizon, with ROC-AUC values below <span class="math inline">\(0.50\)</span> or very close to it. This means that the models have little ability to distinguish between positive and negative market movements at that horizon. Overall, the classification results suggest that predicting market direction is difficult, but Logistic Regression provides the most consistent performance, especially for the longer 20-day forecast horizon.</p>
+</section>
+</section>
+<section id="prediction-diagnostics" class="level2">
+<h2 class="anchored" data-anchor-id="prediction-diagnostics">Prediction Diagnostics</h2>
+<section id="actual-vs-predicted-returns" class="level3">
+<h3 class="anchored" data-anchor-id="actual-vs-predicted-returns">Actual vs Predicted Returns</h3>
+<div id="0c947acb" class="cell" data-execution_count="40">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-41-output-1.png" width="661" height="567" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 5. Actual vs Predicted Returns for the Best Overall Regression Model</strong></p>
+<div id="dbb07816" class="cell" data-execution_count="41">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-42-output-1.png" width="659" height="567" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 6. Predicted Probabilities by Actual Class for the Best Overall Classification Model</strong></p>
+<p>Figure 5 shows the actual versus predicted returns for the best overall regression model, which is Random Forest at the 1-day forecast horizon. The dashed diagonal line represents perfect prediction, where the predicted return would equal the actual return. However, most predicted returns are clustered very close to <span class="math inline">\(0\)</span>, even when actual returns range from about <span class="math inline">\(-0.06\)</span> to <span class="math inline">\(0.095\)</span>. This means that the model is not capturing the full size of market movements. Instead, it tends to predict returns near the average, which makes it less useful for forecasting large positive or negative changes. Overall, this supports the earlier out-of-sample <span class="math inline">\(R^2\)</span> results, suggesting that the regression model has limited predictive power for the magnitude of future returns.</p>
+<p>Figure 6 shows the predicted probabilities from the best overall classification model, which is Logistic Regression at the 20-day forecast horizon. The dashed horizontal line at <span class="math inline">\(0.50\)</span> represents the usual cutoff for classifying a return as positive. Ideally, observations with actual positive returns should have predicted probabilities mostly above <span class="math inline">\(0.50\)</span>, while observations with actual non-positive returns should have probabilities mostly below <span class="math inline">\(0.50\)</span>. However, the two groups overlap heavily. Many actual positive-return cases still receive probabilities below <span class="math inline">\(0.50\)</span>, and some non-positive-return cases receive probabilities above <span class="math inline">\(0.50\)</span>. This shows that the model has some ability to rank positive and non-positive outcomes, but the separation between the two classes is weak. This is consistent with the ROC-AUC value of about <span class="math inline">\(0.57\)</span>, which is better than random guessing but still limited.</p>
+</section>
+<section id="roc-curve-for-best-classifier" class="level3">
+<h3 class="anchored" data-anchor-id="roc-curve-for-best-classifier">ROC Curve for Best Classifier</h3>
+<div id="7d9027d4" class="cell" data-execution_count="42">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-43-output-1.png" width="566" height="567" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 7. ROC Curve (Logistic Regression, 20-Day Direction)</strong></p>
+<p>Figure 7 shows the ROC curve for the best overall classification model, Logistic Regression at the 20-day forecast horizon. The model has an AUC of approximately 0.572, which is above the random-classifier benchmark of 0.50. This means the model has some ability to rank positive 20-day return cases above non-positive return cases. However, the curve remains fairly close to the diagonal line, so the improvement is modest rather than strong. Overall, this figure supports the classification results in Table 3: the clearest directional signal appears at the 20-day horizon, but the model’s predictive power is still limited.</p>
+</section>
+</section>
+<section id="feature-importance-and-model-interpretation" class="level2">
+<h2 class="anchored" data-anchor-id="feature-importance-and-model-interpretation">Feature Importance and Model Interpretation</h2>
+<div id="90ba90f4" class="cell" data-execution_count="44">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-45-output-1.png" width="756" height="566" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 8. Random Forest Regressor Feature Importance for 1-Day Return Prediction</strong></p>
+<p>Figure 8 shows the most important predictors used by the Random Forest model for 1-day S&amp;P 500 return prediction. The top predictors are mainly volatility and momentum variables. The most important feature is the 1-day change in the VIX, followed by the 5-day change in the VIX, 20-day Dow Jones momentum, the VIX level itself, and shorter-term S&amp;P 500 and Dow Jones momentum measures. This suggests that the Random Forest model relied more on recent market sentiment, volatility changes, and price momentum than on slower-moving macroeconomic indicators. For example, variables such as unemployment, inflation, and industrial production do not appear among the top features, while VIX-related and momentum variables dominate the ranking. However, these importance values should be interpreted as model-based associations rather than causal effects. They show which variables the model used most for prediction, not which variables directly caused future returns.</p>
+<div id="cbec9570" class="cell" data-execution_count="46">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/cell-47-output-1.png" width="756" height="566" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Figure 9. Logistic Regression Coefficients for 20-Day Direction Prediction</strong></p>
+<p>Figure 9 shows the largest standardized coefficients from the Logistic Regression model for 20-day direction prediction. The strongest positive coefficient is the 20-day rolling average of the 1-year Treasury yield, which is much larger than the other coefficients. This means that, within this fitted model, higher recent short-term yield levels are associated with a higher predicted probability of a positive 20-day S&amp;P 500 return. Other positive coefficients include the federal funds rate, the unemployment rate, lagged inflation, lagged unemployment, 20-day Dow Jones volatility, and the 20-day rolling credit spread. Negative coefficients include the 20-day rolling oil price, lagged unemployment, lagged industrial production, lagged federal funds rate, the 20-day rolling USD Index, 20-day S&amp;P 500 volatility, and several rolling yield measures.</p>
+<p>Overall, this figure suggests that the 20-day direction model relies more on broader macro-financial conditions than the 1-day Random Forest return model. Unlike Figure 8, where volatility and momentum variables dominate, Figure 9 includes more interest-rate, oil-price, unemployment, inflation, industrial-production, and credit-spread variables. However, these coefficients should be interpreted as model-based associations rather than causal effects. They show how the Logistic Regression model used standardized predictors to classify future market direction, not whether these variables directly caused future returns.</p>
+<p>This helps answer the research question by showing that the limited predictive signal comes mainly from volatility, momentum, and interest-rate-related variables rather than from all macroeconomic indicators equally.</p>
+<p>Although XGBoost was included in the model comparison, its feature-importance plot was not retained because the fitted model did not produce a readable nonzero importance ranking for the selected 1-day return model. To avoid presenting a misleading blank figure, the interpretation focuses on Random Forest feature importance and Logistic Regression coefficients, which provide clearer information about the predictors used by the models.</p>
+</section>
+</section>
+<section id="conclusions-and-summary" class="level1">
+<h1>Conclusions and Summary</h1>
+<p>This project examined whether macro-financial indicators can meaningfully predict future S&amp;P 500 returns, and whether machine learning models improve predictive performance relative to simpler benchmark and linear models. Overall, the results provide a mixed answer. The indicators show little ability to predict the exact size of future returns, but they provide limited usefulness for classifying medium-term market direction.</p>
+<p>For numerical return prediction, model performance was generally weak. Across the 1-day, 5-day, and 20-day horizons, most out-of-sample <span class="math inline">\(R^2\)</span> values were close to zero or negative. The strongest regression result was the 1-day Random Forest model, with a small positive <span class="math inline">\(R^2\)</span> of 0.00384. However, this improvement was extremely small and should not be interpreted as strong predictive power. At the 5-day horizon, XGBoost performed best, but its <span class="math inline">\(R^2\)</span> was still slightly negative at -0.00083. At the 20-day horizon, the mean benchmark performed best, with an <span class="math inline">\(R^2\)</span> of -0.01352, while all fitted regression models performed worse. These results suggest that the engineered predictors, including lagged indicators, rolling averages, momentum, volatility, and yield-spread features, do not meaningfully predict the numerical size of future S&amp;P 500 returns.</p>
+<p>The classification results were somewhat stronger, but still modest. Logistic Regression was the best classification model across all three horizons based on ROC-AUC. At the 1-day horizon, it achieved a ROC-AUC of 0.53035, which is only slightly above the random benchmark of 0.50. At the 5-day horizon, the best ROC-AUC was 0.49491, suggesting no useful directional signal. The strongest classification result appeared at the 20-day horizon, where Logistic Regression reached a ROC-AUC of 0.57166. This suggests that macro-financial indicators may contain more useful information for predicting medium-term market direction than for predicting exact return size. However, because the ROC-AUC remains fairly close to 0.50, the predictive signal should be interpreted as limited rather than strong.</p>
+<p>The feature-importance results help explain this pattern. The 1-day Random Forest regression model relied mostly on recent volatility and momentum variables, especially VIX changes, S&amp;P 500 momentum, Dow Jones momentum, and rolling volatility. In contrast, the 20-day Logistic Regression model placed more weight on broader macro-financial indicators, including Treasury yields, oil prices, unemployment, inflation, the federal funds rate, industrial production, the USD Index, and credit spreads. This suggests that short-term return size is mostly noisy and linked to recent market movement, while medium-term direction may be more connected to wider economic conditions.</p>
+<p>The results also show that more complex machine learning models do not automatically solve the difficulty of stock return prediction. Random Forest performed best for 1-day regression, but only by a very small margin. XGBoost performed best for 5-day regression, but its <span class="math inline">\(R^2\)</span> remained negative. For classification, Logistic Regression consistently outperformed Random Forest and XGBoost by ROC-AUC. This suggests that the main limitation is not only model choice, but also the weak and noisy relationship between publicly available macro-financial indicators and future stock returns.</p>
+<p>There are several limitations to this project. First, some macroeconomic variables are released monthly and were forward-filled to daily frequency, which may not fully reflect the timing of real information releases. Second, the project evaluates statistical forecasting performance only and does not test whether the predictions would be useful in a real trading strategy after transaction costs and risk constraints. Third, the analysis focuses only on the S&amp;P 500, so the findings may not generalize to individual stocks, international markets, or other asset classes. Future work could improve the analysis by using real-time macroeconomic release dates, adding news or sentiment data, comparing multiple market indices, or testing whether the classification signals can support a simple portfolio strategy.</p>
+<p>In conclusion, this project finds little evidence that macro-financial indicators can meaningfully predict the exact size of future S&amp;P 500 returns. However, the indicators show limited usefulness for classifying medium-term market direction, especially at the 20-day horizon. The results support the broader view that short-run stock returns are highly difficult to forecast, even with engineered features and machine learning models.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>JSC370 Final Project | Mia Chen | 2026</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
